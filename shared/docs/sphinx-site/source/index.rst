@@ -97,6 +97,7 @@ Explore my curated collection of learning materials and progress tracking:
    learning/index
    blog/index
    resources/index
+   docs/index
 
 .. toctree::
    :maxdepth: 2

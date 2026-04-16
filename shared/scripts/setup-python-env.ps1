@@ -1,12 +1,12 @@
 # PowerShell Script to Setup Python Environment for Data Science Projects
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$EnvName,
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [string]$PythonVersion = "3.11",
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [string[]]$Packages = @("pandas", "numpy", "matplotlib", "seaborn", "jupyter", "scikit-learn")
 )
 
@@ -30,7 +30,8 @@ if (Get-Command conda -ErrorAction SilentlyContinue) {
     Write-Host "✅ Environment '$EnvName' created successfully!" -ForegroundColor Green
     Write-Host "📝 To activate: conda activate $EnvName" -ForegroundColor Blue
     
-} elseif (Get-Command python -ErrorAction SilentlyContinue) {
+}
+elseif (Get-Command python -ErrorAction SilentlyContinue) {
     Write-Host "📦 Using Python venv for environment management" -ForegroundColor Yellow
     
     # Create virtual environment
@@ -48,7 +49,8 @@ if (Get-Command conda -ErrorAction SilentlyContinue) {
     Write-Host "✅ Environment '$EnvName' created successfully!" -ForegroundColor Green
     Write-Host "📝 To activate: $EnvName\Scripts\Activate.ps1" -ForegroundColor Blue
     
-} else {
+}
+else {
     Write-Error "❌ Python not found. Please install Python or Anaconda first."
     exit 1
 }

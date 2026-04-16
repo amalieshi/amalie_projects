@@ -3,36 +3,51 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import os
+import sys
+from pathlib import Path
+
+# Add the parent docs directory to the path for auto-discovery
+docs_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(docs_root))
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Amalie\'s Development Portfolio'
-copyright = '2026, Amalie'
-author = 'Amalie'
-release = '1.0.0'
+project = "Amalie's Development Portfolio"
+copyright = "2026, Amalie"
+author = "Amalie"
+release = "1.0.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.githubpages',
-    'sphinx.ext.intersphinx',
-    'myst_parser',
-    'sphinx_copybutton',
-    'sphinx_design',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.intersphinx",
+    "myst_parser",
+    "sphinx_copybutton",
+    "sphinx_design",
 ]
 
-templates_path = ['_templates']
-exclude_patterns = []
+templates_path = ["_templates"]
+exclude_patterns = ["sphinx-site/**"]
+
+# Additional source directories
+# This allows including files from the parent docs directory
+html_extra_path = []
+
+# Configure external docs inclusion
+external_docs_path = "../.."
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'furo'
-html_static_path = ['_static']
+html_theme = "furo"
+html_static_path = ["_static"]
 html_title = f"{project} - {release}"
 
 # Theme options for Furo
@@ -82,10 +97,13 @@ myst_enable_extensions = [
 
 # Intersphinx mapping
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3/', None),
-    'django': ('https://docs.djangoproject.com/en/stable/', 'https://docs.djangoproject.com/en/stable/_objects/'),
-    'numpy': ('https://numpy.org/doc/stable/', None),
-    'pandas': ('https://pandas.pydata.org/docs/', None),
+    "python": ("https://docs.python.org/3/", None),
+    "django": (
+        "https://docs.djangoproject.com/en/stable/",
+        "https://docs.djangoproject.com/en/stable/_objects/",
+    ),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "pandas": ("https://pandas.pydata.org/docs/", None),
 }
 
 # Copy button configuration
@@ -94,17 +112,35 @@ copybutton_prompt_is_regexp = True
 
 # Custom CSS
 html_css_files = [
-    'custom.css',
+    "custom.css",
 ]
 
 # Favicon
-html_favicon = '_static/favicon.ico'
+html_favicon = "_static/favicon.ico"
 
 # Master document
-master_doc = 'index'
+master_doc = "index"
 
 # Source file suffixes
 source_suffix = {
-    '.rst': None,
-    '.md': 'myst_parser',
+    ".rst": None,
+    ".md": "myst_parser",
 }
+
+
+# Custom function to find markdown files in shared/docs
+def find_external_docs():
+    """Find all markdown files in the shared/docs directory (excluding sphinx-site)."""
+    docs_dir = Path(__file__).parent.parent.parent
+    md_files = []
+
+    for md_file in docs_dir.glob("*.md"):
+        if md_file.is_file() and "sphinx-site" not in str(md_file):
+            relative_path = md_file.relative_to(docs_dir)
+            md_files.append(str(relative_path))
+
+    return md_files
+
+
+# Automatically discover external markdown files
+external_md_files = find_external_docs()

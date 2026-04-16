@@ -11,10 +11,15 @@ BUILDDIR      = build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: help Makefile
+.PHONY: help Makefile setup-external-docs
+
+# Setup external documentation before building
+setup-external-docs:
+	@echo "🔧 Setting up external documentation..."
+	@python setup_external_docs.py
 
 # Development server with auto-reload
-livehtml:
+livehtml: setup-external-docs
 	sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)/html" $(SPHINXOPTS) $(O) \
 		--host 0.0.0.0 \
 		--port 8000 \
@@ -25,17 +30,17 @@ livehtml:
 		--open-browser
 
 # Clean build with link checking
-clean-build:
+clean-build: setup-external-docs
 	@make clean
 	@make html
 	@make linkcheck
 
 # Quick development build
-dev:
+dev: setup-external-docs
 	@$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)/html" -W --keep-going
 
 # Production build with strict checking
-production:
+production: setup-external-docs
 	@$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)/html" -W -E -a --keep-going
 	@echo "Production build complete. Files in $(BUILDDIR)/html"
 
@@ -53,5 +58,5 @@ install-dev:
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile
+%: Makefile setup-external-docs
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

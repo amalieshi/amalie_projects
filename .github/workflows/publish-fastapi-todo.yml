@@ -1,0 +1,365 @@
+name: FastAPI Todo - CI/CD Pipeline
+
+on:
+  push:
+    paths:
+      - "python/web-frameworks/fastapi/**"
+  pull_request:
+    paths:
+      - "python/web-frameworks/fastapi/**"
+  workflow_dispatch:
+    inputs:
+      force_publish:
+        description: "Force publish even if version exists"
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PACKAGE_DIR: python/web-frameworks/fastapi
+
+jobs:
+  check-version:
+    # Check if version has been updated
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      tag-exists: ${{ steps.check-tag.outputs.exists }}
+      should-publish: ${{ steps.should-publish.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from pyproject.toml
+        id: get-version
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          PROJECT_NAME=$(grep '^name = ' pyproject.toml | sed 's/name = "\(.*\)"/\1/' | tr '_' '-')
+          echo "version=${PROJECT_NAME}-v${VERSION}" >> $GITHUB_OUTPUT
+          echo "raw_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
+          echo "Found project: $PROJECT_NAME, version: $VERSION"
+          echo "Tag will be: ${PROJECT_NAME}-v${VERSION}"
+
+      - name: Check if tag exists
+        id: check-tag
+        run: |
+          if git rev-parse "refs/tags/${{ steps.get-version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.get-version.outputs.version }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.get-version.outputs.version }} does not exist"
+          fi
+
+      - name: Should publish?
+        id: should-publish
+        run: |
+          echo "🔍 Version Check Results:"
+          echo "   Tag exists: ${{ steps.check-tag.outputs.exists }}"
+          echo "   Force publish: ${{ github.event.inputs.force_publish }}"
+
+          if [[ "${{ steps.check-tag.outputs.exists }}" == "false" || "${{ github.event.inputs.force_publish }}" == "true" ]]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+            echo "✅ New version detected - ready for publishing"
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No version change detected"
+          fi
+
+  test:
+    name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: [ check-version ]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
+        exclude:
+          # Skip some combinations to reduce job count
+          - os: windows-latest
+            python-version: "3.8"
+          - os: macos-latest
+            python-version: "3.8"
+          - os: macos-latest
+            python-version: "3.9"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd ${{ env.PACKAGE_DIR }}
+          pip install -e ".[test]"
+
+      - name: Run tests with pytest
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          python -m pytest tests/ -v
+
+      - name: Run linting
+        if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          pip install flake8
+          flake8 src/ --max-line-length=88 --extend-ignore=E203,W503
+
+  build:
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: check-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+          cd ${{ env.PACKAGE_DIR }}
+          pip install -e .
+
+      - name: Build package
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          python -m build
+
+      - name: Check package
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.check-version.outputs.project_name }}-dist
+          path: ${{ env.PACKAGE_DIR }}/dist/*
+
+  create-tag:
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: [ check-version, build ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Create and push tag
+        env:
+          GIT_AUTHOR_NAME: amalieshi
+          GIT_AUTHOR_EMAIL: amalie.shi.jhmi@gmail.com
+          GIT_COMMITTER_NAME: amalieshi
+          GIT_COMMITTER_EMAIL: amalie.shi.jhmi@gmail.com
+        run: |
+          # Debug: Verify we have the token
+          if [ -z "${{ secrets.PAT_TOKEN }}" ]; then
+            echo "❌ ERROR: PAT_TOKEN secret is empty or not set!"
+            exit 1
+          else
+            echo "✅ PAT_TOKEN is available"
+          fi
+
+          # Explicitly set git identity
+          git config user.name "amalieshi"
+          git config user.email "amalie.shi.jhmi@gmail.com"
+          git config user.signingkey ""
+
+          # Verify git identity
+          echo "Git identity configured as:"
+          git config user.name
+          git config user.email
+
+          TAG="${{ needs.check-version.outputs.version }}"
+          PROJECT="${{ needs.check-version.outputs.project_name }}"
+          echo "Creating tag: $TAG for project: $PROJECT"
+          git tag -a "$TAG" -m "Release $TAG - $PROJECT by amalieshi"
+
+          # Since checkout used PAT_TOKEN, origin should now work with it
+          echo "Pushing tag $TAG using authenticated origin..."
+          git push origin "$TAG"
+
+  publish-pypi:
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: [ check-version, build, create-tag ]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/todolist_fastapi
+    permissions:
+      id-token: write # For trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.check-version.outputs.project_name }}-dist
+          path: ${{ env.PACKAGE_DIR }}/dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ env.PACKAGE_DIR }}/dist/
+          # Use API token if trusted publishing is not set up
+          # password: ${{ secrets.PYPI_API_TOKEN }}
+
+  create-github-release:
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: [ check-version, build, create-tag ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.check-version.outputs.project_name }}-dist
+          path: dist
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          cat > RELEASE_NOTES.md << 'EOF'
+          ## ${{ needs.check-version.outputs.project_name }} ${{ needs.check-version.outputs.version }}
+
+          ### Features
+          - ✅ Complete CRUD operations for todo items
+          - ✅ FastAPI with automatic OpenAPI documentation
+          - ✅ SQLite database with SQLAlchemy ORM
+          - ✅ Timestamp tracking (created, updated, completed)
+          - ✅ Pydantic models for data validation
+          - ✅ Ready-to-use package with entry point
+
+          ### Installation
+          ```bash
+          pip install ${{ needs.check-version.outputs.project_name }}==${{ needs.check-version.outputs.raw_version }}
+          ```
+
+          ### Usage
+          ```bash
+          todo-api  # Start the server
+          # Then visit http://localhost:8000/docs
+          ```
+
+          ### Package Files
+          - `todolist_fastapi-${{ needs.check-version.outputs.raw_version }}-py3-none-any.whl`
+          - `todolist_fastapi-${{ needs.check-version.outputs.raw_version }}.tar.gz`
+          EOF
+
+          echo "Generated release notes"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.check-version.outputs.version }}
+          name: ${{ needs.check-version.outputs.project_name }} ${{
+            needs.check-version.outputs.version }}
+          body_path: ${{ env.PACKAGE_DIR }}/RELEASE_NOTES.md
+          files: |
+            dist/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-success:
+    needs: [ check-version, publish-pypi, create-github-release ]
+    if: always() && needs.check-version.outputs.should-publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify completion
+        run: |
+          if [[ "${{ needs.publish-pypi.result }}" == "success" && "${{ needs.create-github-release.result }}" == "success" ]]; then
+            echo "✅ Successfully published ${{ needs.check-version.outputs.project_name }} ${{ needs.check-version.outputs.version }}"
+            echo "📦 PyPI: https://pypi.org/project/${{ needs.check-version.outputs.project_name }}/${{ needs.check-version.outputs.raw_version }}/"
+            echo "🏷️ GitHub: https://github.com/amalieshi/amalie_projects/releases/tag/${{ needs.check-version.outputs.version }}"
+          else
+            echo "❌ Some publishing steps failed"
+            echo "PyPI: ${{ needs.publish-pypi.result }}"
+            echo "GitHub Release: ${{ needs.create-github-release.result }}"
+            exit 1
+          fi
+
+  workflow-skipped:
+    needs: [ check-version ]
+    if: always() && github.event_name != 'pull_request' &&
+      needs.check-version.outputs.should-publish == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow Skipped Summary
+        run: |
+          echo "⏭️ **FastAPI Todo Workflow Skipped**"
+          echo ""
+          echo "📋 **Reason**: Version ${{ needs.check-version.outputs.version }} already exists"
+          echo "🎯 **Action**: No tests, builds, or publishing needed"
+          echo "⚡ **Benefit**: Saved CI resources and execution time"
+          echo ""
+          echo "💡 **To trigger full workflow**:"
+          echo "   1. Bump version in python/web-frameworks/fastapi/pyproject.toml"
+          echo "   2. Current: $(echo ${{ needs.check-version.outputs.version }} | cut -d'v' -f2)"
+          echo "   3. Suggested: $(echo ${{ needs.check-version.outputs.version }} | cut -d'v' -f2 | awk -F. '{print $1\".\"$2\".\"$3+1}')"
+          echo "   4. Or use 'Actions' → 'Run workflow' → 'Force publish' for testing"
+
+  workflow-summary:
+    needs:
+      [
+        test,
+        check-version,
+        build,
+        create-tag,
+        publish-pypi,
+        create-github-release,
+      ]
+    if: always() && needs.check-version.outputs.should-publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow Summary
+        run: |
+          echo "🔍 **Workflow Summary for ${{ github.event.head_commit.message }}**"
+          echo ""
+
+          # Test Results
+          if [[ "${{ needs.test.result }}" == "success" ]]; then
+            echo "✅ **Tests**: All tests passed across multiple Python versions"
+          else
+            echo "❌ **Tests**: Some tests failed"
+          fi
+
+          # Publishing Results
+          if [[ "${{ needs.check-version.outputs.should-publish }}" == "true" ]]; then
+            if [[ "${{ needs.publish-pypi.result }}" == "success" && "${{ needs.create-github-release.result }}" == "success" ]]; then
+              echo "🚀 **Publishing**: Successfully published ${{ needs.check-version.outputs.project_name }} ${{ needs.check-version.outputs.version }}"
+              echo "📦 **PyPI**: https://pypi.org/project/${{ needs.check-version.outputs.project_name }}/${{ needs.check-version.outputs.raw_version }}/"
+              echo "🏷️ **GitHub**: https://github.com/amalieshi/amalie_projects/releases/tag/${{ needs.check-version.outputs.version }}"
+            else
+              echo "❌ **Publishing**: Failed during publishing steps"
+              echo "   PyPI: ${{ needs.publish-pypi.result || 'skipped' }}"
+              echo "   GitHub Release: ${{ needs.create-github-release.result || 'skipped' }}"
+            fi
+          fi
+
+          echo ""
+          echo "📊 **Job Status Summary**:"
+          echo "   Tests: ${{ needs.test.result }}"
+          echo "   Version Check: ${{ needs.check-version.result }}"
+          echo "   Build: ${{ needs.build.result }}"
+          echo "   Create Tag: ${{ needs.create-tag.result }}"
+          echo "   Publish PyPI: ${{ needs.publish-pypi.result }}"
+          echo "   GitHub Release: ${{ needs.create-github-release.result }}"

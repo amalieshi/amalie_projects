@@ -1,0 +1,165 @@
+# Documentation Build Configuration
+# This file documents the YAML-based build system that replaces the Makefile
+
+project_name: "Amalie's Development Portfolio Documentation"
+build_system: "Sphinx + GitHub Actions + Docker Compose + pyproject.toml"
+dependency_manager: "pip with pyproject.toml (replaces requirements.txt)"
+
+# Available Commands (replaces Makefile targets)
+commands:
+  # Local Development (Docker Compose + pyproject.toml)
+  local_dev:
+    command: "docker-compose up docs-dev"
+    description: "Start development server with auto-reload on localhost:8000 using pyproject.toml"
+    equivalent_makefile: "make livehtml"
+
+  local_build:
+    command: "docker-compose --profile build up docs-build"
+    description: "Build documentation locally and check links using pyproject.toml"
+    equivalent_makefile: "make clean-build"
+
+  local_lint:
+    command: "docker-compose --profile lint up docs-lint"
+    description: "Run documentation linting checks using pyproject.toml"
+    equivalent_makefile: "make check"
+
+  local_production:
+    command: "docker-compose --profile production up docs-production"
+    description: "Production build with strict checking using pyproject.toml"
+    equivalent_makefile: "make production"
+
+  # pyproject.toml-based Commands (Direct)
+  pip_install_dev:
+    command: 'pip install -e ".[dev,enhanced]"'
+    description: "Install development dependencies from pyproject.toml"
+
+  pip_install_all:
+    command: 'pip install -e ".[all]"'
+    description: "Install all optional dependencies from pyproject.toml"
+
+  pip_build:
+    command: "python docs.py build"
+    description: "Quick development build (uses installed dependencies)"
+    equivalent_makefile: "make dev"
+
+  pip_serve:
+    command: "python docs.py serve"
+    description: "Start local server on built documentation"
+
+  pip_lint:
+    command: "doc8 source --max-line-length 100"
+    description: "Run linting using installed doc8"
+
+  # Legacy Python Commands (Still supported)
+  python_install:
+    command: "python docs.py install"
+    description: "Install all dependencies (now installs from pyproject.toml)"
+
+  python_clean:
+    command: "python docs.py clean"
+    description: "Clean build directory"
+
+  python_build:
+    command: "python docs.py build"
+    description: "Quick development build"
+    equivalent_makefile: "make dev"
+
+  python_serve:
+    command: "python docs.py serve"
+    description: "Start local server on built documentation"
+
+# CI/CD Pipeline (GitHub Actions)
+github_actions:
+  triggers:
+    - "Push to main/develop branches"
+    - "Pull requests to main"
+    - "Manual workflow dispatch"
+
+  jobs:
+    lint_docs:
+      description: "Lint documentation for style and format issues"
+      runs_on: "Pull requests only"
+
+    build:
+      description: "Build documentation with Sphinx"
+      variants:
+        - "Development build (PRs)"
+        - "Production build (main branch)"
+
+    deploy:
+      description: "Deploy to GitHub Pages"
+      runs_on: "Main branch only"
+
+    build_check:
+      description: "Test all docs.py commands work correctly"
+      runs_on: "Pull requests only"
+
+# Configuration Files
+configuration:
+  sphinx_config: "source/conf.py"
+  pyproject_config: "pyproject.toml" # Replaces requirements.txt
+  requirements_legacy: "requirements.txt" # Still maintained for compatibility
+  docker_compose: "docker-compose.yml"
+  github_actions: "../../../.github/workflows/docs.yml"
+  build_script: "docs.py"
+
+# Environment Setup
+environments:
+  development:
+    python_version: "3.11"
+    auto_reload: true
+    strict_warnings: false
+
+  production:
+    python_version: "3.11"
+    auto_reload: false
+    strict_warnings: true
+    link_checking: true
+
+  ci_cd:
+    python_version: "3.11"
+    caching: true
+    parallel_jobs: true
+    artifacts: true
+
+# Migration Notes from Makefile
+migration_notes:
+  removed_makefile_dependency: true
+  replaced_commands:
+    "make help": "See this configuration file or README"
+    "make clean": "python docs.py clean OR docker-compose --profile build up"
+    "make html": "python docs.py build OR GitHub Actions"
+    "make livehtml": "docker-compose up docs-dev"
+    "make dev": "python docs.py build"
+    "make production": "docker-compose --profile production up"
+    "make check": "docker-compose --profile lint up"
+    "make linkcheck": "Included in build jobs automatically"
+
+  improvements:
+    - "Separated linting, building, and deployment into distinct jobs"
+    - "Added comprehensive CI/CD with GitHub Actions"
+    - "Added Docker Compose for consistent local development"
+    - "Better error handling and progress reporting"
+    - "Automatic GitHub Pages deployment"
+    - "PR preview builds and status comments"
+
+# Quick Start Examples
+quick_start:
+  first_time_setup:
+    - "git clone <repository>"
+    - "cd shared/docs/sphinx-site"
+    - "python docs.py install"
+
+  daily_development:
+    - "docker-compose up docs-dev"
+    - "Edit files in source/"
+    - "View changes at http://localhost:8000"
+
+  before_committing:
+    - "docker-compose --profile lint up docs-lint"
+    - "docker-compose --profile build up docs-build"
+    - "git add . && git commit && git push"
+
+  production_testing:
+    - "docker-compose --profile production up docs-production"
+    - "Check build/html for final output"

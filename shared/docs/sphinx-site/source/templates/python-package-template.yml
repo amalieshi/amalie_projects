@@ -1,0 +1,384 @@
+# =============================================================================
+# PYTHON PACKAGE CI/CD TEMPLATE
+# =============================================================================
+# Copy this file and customize the variables below for your project
+
+name: "PROJECT_NAME - CI/CD Pipeline"
+
+# =============================================================================
+# CONFIGURATION VARIABLES - MODIFY THESE FOR YOUR PROJECT
+# =============================================================================
+env:
+  # Project Configuration
+  PROJECT_NAME: "your-project-name"                    # Display name for the project
+  PACKAGE_DIR: "path/to/your/package"                  # Path to package directory from repo root
+  PYPI_URL: "https://pypi.org/p/your-package-name"     # PyPI project URL
+  
+  # Git Configuration
+  GIT_AUTHOR_NAME: "Your Name"                         # Git commit author name
+  GIT_AUTHOR_EMAIL: "your.email@example.com"          # Git commit author email
+  
+  # Python Configuration
+  PRIMARY_PYTHON_VERSION: "3.11"                      # Primary Python version for builds
+  TEST_PYTHON_VERSIONS: '["3.8", "3.9", "3.10", "3.11", "3.12"]'  # Python versions to test
+  TEST_OPERATING_SYSTEMS: '["ubuntu-latest", "windows-latest", "macos-latest"]'  # OS to test on
+  
+  # Package Configuration
+  INSTALL_EXTRAS: "test"                               # Extra dependencies for testing (e.g., "test", "dev")
+  LINT_MAX_LINE_LENGTH: "88"                          # Maximum line length for linting
+  LINT_IGNORE: "E203,W503"                            # Flake8 ignore rules
+
+# =============================================================================
+# WORKFLOW TRIGGERS - MODIFY PATH PATTERNS AS NEEDED
+# =============================================================================
+on:
+  push:
+    paths:
+      - "path/to/your/package/**"                      # Modify this path pattern
+  pull_request:
+    paths:
+      - "path/to/your/package/**"                      # Modify this path pattern  
+  workflow_dispatch:
+    inputs:
+      force_publish:
+        description: "Force publish even if version exists"
+        required: false
+        default: false
+        type: boolean
+
+# =============================================================================
+# JOBS - USUALLY NO CHANGES NEEDED BELOW THIS LINE
+# =============================================================================
+jobs:
+  check-version:
+    name: Check Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      raw_version: ${{ steps.get-version.outputs.raw_version }}
+      project_name: ${{ steps.get-version.outputs.project_name }}
+      tag-exists: ${{ steps.check-tag.outputs.exists }}
+      should-publish: ${{ steps.should-publish.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from pyproject.toml
+        id: get-version
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          PROJECT_NAME=$(grep '^name = ' pyproject.toml | sed 's/name = "\(.*\)"/\1/' | tr '_' '-')
+          echo "version=${PROJECT_NAME}-v${VERSION}" >> $GITHUB_OUTPUT
+          echo "raw_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
+          echo "Found project: $PROJECT_NAME, version: $VERSION"
+          echo "Tag will be: ${PROJECT_NAME}-v${VERSION}"
+
+      - name: Check if tag exists
+        id: check-tag
+        run: |
+          if git rev-parse "refs/tags/${{ steps.get-version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.get-version.outputs.version }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.get-version.outputs.version }} does not exist"
+          fi
+
+      - name: Should publish?
+        id: should-publish
+        run: |
+          echo "🔍 Version Check Results:"
+          echo "   Tag exists: ${{ steps.check-tag.outputs.exists }}"
+          echo "   Force publish: ${{ github.event.inputs.force_publish }}"
+          
+          if [[ "${{ steps.check-tag.outputs.exists }}" == "false" || "${{ github.event.inputs.force_publish }}" == "true" ]]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+            echo "✅ New version detected - ready for publishing"
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No version change detected"
+          fi
+
+  test:
+    name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: [ check-version ]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ${{ fromJson(env.TEST_OPERATING_SYSTEMS) }}
+        python-version: ${{ fromJson(env.TEST_PYTHON_VERSIONS) }}
+        exclude:
+          # Reduce job count by skipping some combinations
+          - os: windows-latest
+            python-version: "3.8"
+          - os: macos-latest
+            python-version: "3.8"
+          - os: macos-latest
+            python-version: "3.9"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd ${{ env.PACKAGE_DIR }}
+          pip install -e ".[${{ env.INSTALL_EXTRAS }}]"
+
+      - name: Run tests with pytest
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          python -m pytest tests/ -v
+
+      - name: Run linting
+        if: matrix.python-version == env.PRIMARY_PYTHON_VERSION && matrix.os == 'ubuntu-latest'
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          pip install flake8
+          flake8 src/ --max-line-length=${{ env.LINT_MAX_LINE_LENGTH }} --extend-ignore=${{ env.LINT_IGNORE }}
+
+  build:
+    name: Build Package
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: [ check-version, test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PRIMARY_PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+          cd ${{ env.PACKAGE_DIR }}
+          pip install -e .
+
+      - name: Build package
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          python -m build
+
+      - name: Check package
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.check-version.outputs.project_name }}-dist
+          path: ${{ env.PACKAGE_DIR }}/dist/*
+
+  create-tag:
+    name: Create Git Tag
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: [ check-version, build ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Create and push tag
+        env:
+          GIT_AUTHOR_NAME: ${{ env.GIT_AUTHOR_NAME }}
+          GIT_AUTHOR_EMAIL: ${{ env.GIT_AUTHOR_EMAIL }}
+          GIT_COMMITTER_NAME: ${{ env.GIT_AUTHOR_NAME }}
+          GIT_COMMITTER_EMAIL: ${{ env.GIT_AUTHOR_EMAIL }}
+        run: |
+          # Debug: Verify we have the token
+          if [ -z "${{ secrets.PAT_TOKEN }}" ]; then
+            echo "❌ ERROR: PAT_TOKEN secret is empty or not set!"
+            exit 1
+          else
+            echo "✅ PAT_TOKEN is available"
+          fi
+
+          # Explicitly set git identity
+          git config user.name "${{ env.GIT_AUTHOR_NAME }}"
+          git config user.email "${{ env.GIT_AUTHOR_EMAIL }}"
+          git config user.signingkey ""
+
+          # Verify git identity
+          echo "Git identity configured as:"
+          git config user.name
+          git config user.email
+
+          TAG="${{ needs.check-version.outputs.version }}"
+          PROJECT="${{ needs.check-version.outputs.project_name }}"
+          echo "Creating tag: $TAG for project: $PROJECT"
+          git tag -a "$TAG" -m "Release $TAG - $PROJECT by ${{ env.GIT_AUTHOR_NAME }}"
+
+          # Since checkout used PAT_TOKEN, origin should now work with it
+          echo "Pushing tag $TAG using authenticated origin..."
+          git push origin "$TAG"
+
+  publish-pypi:
+    name: Publish to PyPI
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: [ check-version, build, create-tag ]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: ${{ env.PYPI_URL }}
+    permissions:
+      id-token: write # For trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.check-version.outputs.project_name }}-dist
+          path: ${{ env.PACKAGE_DIR }}/dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ env.PACKAGE_DIR }}/dist/
+
+  create-github-release:
+    name: Create GitHub Release
+    if: needs.check-version.outputs.should-publish == 'true'
+    needs: [ check-version, build, create-tag ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.check-version.outputs.project_name }}-dist
+          path: dist
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          cd ${{ env.PACKAGE_DIR }}
+          cat > RELEASE_NOTES.md << 'EOF'
+          ## ${{ needs.check-version.outputs.project_name }} ${{ needs.check-version.outputs.version }}
+
+          ### Installation
+          ```bash
+          pip install ${{ needs.check-version.outputs.project_name }}==${{ needs.check-version.outputs.raw_version }}
+          ```
+
+          ### Package Files
+          - `${{ needs.check-version.outputs.project_name }}-${{ needs.check-version.outputs.raw_version }}-py3-none-any.whl`
+          - `${{ needs.check-version.outputs.project_name }}-${{ needs.check-version.outputs.raw_version }}.tar.gz`
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.check-version.outputs.version }}
+          name: ${{ needs.check-version.outputs.project_name }} ${{ needs.check-version.outputs.version }}
+          body_path: ${{ env.PACKAGE_DIR }}/RELEASE_NOTES.md
+          files: |
+            dist/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-success:
+    name: Notify Success
+    needs: [ check-version, publish-pypi, create-github-release ]
+    if: always() && needs.check-version.outputs.should-publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify completion
+        run: |
+          if [[ "${{ needs.publish-pypi.result }}" == "success" && "${{ needs.create-github-release.result }}" == "success" ]]; then
+            echo "🎉 Successfully published ${{ needs.check-version.outputs.project_name }} ${{ needs.check-version.outputs.raw_version }}"
+            echo "📦 PyPI: ${{ env.PYPI_URL }}"
+            echo "🏷️ GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ needs.check-version.outputs.version }}"
+          else
+            echo "❌ Publication failed - check previous job logs"
+            exit 1
+          fi
+
+  workflow-skipped:
+    name: Workflow Skipped
+    needs: [ check-version ]
+    if: always() && github.event_name != 'pull_request' &&
+      needs.check-version.outputs.should-publish == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow Skipped Summary
+        run: |
+          echo "⏭️ **${{ env.PROJECT_NAME }} Workflow Skipped**"
+          echo ""
+          echo "📋 **Reason**: Version ${{ needs.check-version.outputs.version }} already exists"
+          echo "🎯 **Action**: No tests, builds, or publishing needed"
+          echo "⚡ **Benefit**: Saved CI resources and execution time"
+          echo ""
+          echo "💡 **To trigger full workflow**:"
+          echo "   1. Bump version in ${{ env.PACKAGE_DIR }}/pyproject.toml"
+          echo "   2. Current: $(echo ${{ needs.check-version.outputs.version }} | cut -d'v' -f2)"
+          echo "   3. Suggested: $(echo ${{ needs.check-version.outputs.version }} | cut -d'v' -f2 | awk -F. '{print $1\".\"$2\".\"$3+1}')"
+          echo "   4. Or use 'Actions' → 'Run workflow' → 'Force publish' for testing"
+
+  workflow-summary:
+    name: Workflow Summary
+    needs:
+      [
+        test,
+        check-version,
+        build,
+        create-tag,
+        publish-pypi,
+        create-github-release,
+      ]
+    if: always() && needs.check-version.outputs.should-publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow Summary
+        run: |
+          echo "🔍 **Workflow Summary for ${{ github.event.head_commit.message }}**"
+          echo ""
+
+          # Test Results
+          if [[ "${{ needs.test.result }}" == "success" ]]; then
+            echo "✅ **Tests**: All tests passed across multiple Python versions"
+          else
+            echo "❌ **Tests**: Some tests failed"
+          fi
+
+          # Publishing Results
+          if [[ "${{ needs.check-version.outputs.should-publish }}" == "true" ]]; then
+            if [[ "${{ needs.publish-pypi.result }}" == "success" && "${{ needs.create-github-release.result }}" == "success" ]]; then
+              echo "🚀 **Publishing**: Successfully published ${{ needs.check-version.outputs.project_name }} ${{ needs.check-version.outputs.version }}"
+              echo "📦 **PyPI**: ${{ env.PYPI_URL }}"
+              echo "🏷️ **GitHub**: https://github.com/${{ github.repository }}/releases/tag/${{ needs.check-version.outputs.version }}"
+            else
+              echo "❌ **Publishing**: Failed during publishing steps"
+              echo "   PyPI: ${{ needs.publish-pypi.result || 'skipped' }}"
+              echo "   GitHub Release: ${{ needs.create-github-release.result || 'skipped' }}"
+            fi
+          fi
+
+          echo ""
+          echo "📊 **Job Status Summary**:"
+          echo "   Tests: ${{ needs.test.result }}"
+          echo "   Version Check: ${{ needs.check-version.result }}"
+          echo "   Build: ${{ needs.build.result }}"
+          echo "   Create Tag: ${{ needs.create-tag.result }}"
+          echo "   Publish PyPI: ${{ needs.publish-pypi.result }}"
+          echo "   GitHub Release: ${{ needs.create-github-release.result }}"

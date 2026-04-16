@@ -1,0 +1,110 @@
+version: "3.8"
+
+services:
+  docs-dev:
+    image: python:3.11-slim
+    container_name: sphinx-docs-dev
+    working_dir: /workspace/shared/docs/sphinx-site
+    volumes:
+      - ../../../:/workspace:cached
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    command: >
+      bash -c "
+        echo '🔧 Installing dependencies from pyproject.toml...' &&
+        pip install --upgrade pip &&
+        pip install -e '.[dev,enhanced]' &&
+        echo '📚 Setting up external docs...' &&
+        python setup_external_docs.py &&
+        echo '🚀 Starting development server...' &&
+        sphinx-autobuild source build/html 
+          --host 0.0.0.0 
+          --port 8000 
+          --watch ../../../ 
+          --ignore '*.git/*' 
+          --ignore '*/__pycache__/*' 
+          --ignore '*/build/*' 
+          --open-browser
+      "
+    restart: unless-stopped
+
+  docs-build:
+    image: python:3.11-slim
+    container_name: sphinx-docs-build
+    working_dir: /workspace/shared/docs/sphinx-site
+    volumes:
+      - ../../../:/workspace:cached
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    command: >
+      bash -c "
+        echo '🔧 Installing dependencies from pyproject.toml...' &&
+        pip install --upgrade pip &&
+        pip install -e '.[dev,enhanced]' &&
+        echo '📚 Setting up external docs...' &&
+        python setup_external_docs.py &&
+        echo '🧹 Cleaning previous builds...' &&
+        python docs.py clean &&
+        echo '🏗️ Building documentation...' &&
+        python docs.py build &&
+        echo '🔗 Checking links...' &&
+        sphinx-build -b linkcheck source build/linkcheck &&
+        echo '✅ Build complete! Files in build/html'
+      "
+    profiles: ["build"]
+
+  docs-lint:
+    image: python:3.11-slim
+    container_name: sphinx-docs-lint
+    working_dir: /workspace/shared/docs/sphinx-site
+    volumes:
+      - ../../../:/workspace:cached
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: >
+      bash -c "
+        echo '🔧 Installing dependencies from pyproject.toml...' &&
+        pip install --upgrade pip &&
+        pip install -e '.[dev]' &&
+        echo '🔍 Running documentation linting...' &&
+        doc8 source --max-line-length 100 &&
+        echo '✅ Linting complete!'
+      "
+    profiles: ["lint"]
+
+  docs-production:
+    image: python:3.11-slim
+    container_name: sphinx-docs-production
+    working_dir: /workspace/shared/docs/sphinx-site
+    volumes:
+      - ../../../:/workspace:cached
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    command: >
+      bash -c "
+        echo '🔧 Installing dependencies from pyproject.toml...' &&
+        pip install --upgrade pip &&
+        pip install -e '.[dev,enhanced,quality]' &&
+        echo '📚 Setting up external docs...' &&
+        python setup_external_docs.py &&
+        echo '🧹 Cleaning previous builds...' &&
+        rm -rf build/* &&
+        echo '🏗️ Building production documentation...' &&
+        sphinx-build -b html source build/html -W -E -a --keep-going &&
+        echo '🔗 Checking all links...' &&
+        sphinx-build -b linkcheck source build/linkcheck &&
+        echo '📊 Build statistics:' &&
+        du -sh build/html &&
+        find build/html -name '*.html' | wc -l | xargs echo 'Total HTML pages:' &&
+        echo '✅ Production build complete!'
+      "
+    profiles: ["production"]
+
+networks:
+  default:
+    name: sphinx-docs-network

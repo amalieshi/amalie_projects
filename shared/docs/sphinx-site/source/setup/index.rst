@@ -196,7 +196,7 @@ To add Sphinx extensions:
           'new_extension_name',
       ]
 3. Configure extension options as needed
-4. Update ``requirements.txt``
+4. Update dependencies in ``pyproject.toml``
 
 🔧 **Troubleshooting**
 ^^^^^^^^^^^^^^^^^^^^^

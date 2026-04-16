@@ -17,7 +17,7 @@ sphinx-external-toc>=1.0.1
 
 # Optional: Advanced features
 # sphinx-gallery>=0.15.0        # For code galleries
-# sphinx-tabs>=3.4.4            # For tabbed content
+sphinx-tabs>=3.4.4              # For tabbed content
 # sphinxcontrib-bibtex>=2.6.2   # For bibliography support
 # sphinxcontrib-mermaid>=0.9.2  # For Mermaid diagrams
 

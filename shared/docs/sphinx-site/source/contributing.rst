@@ -65,7 +65,7 @@ Thank you for your interest in contributing to this portfolio documentation! Thi
    cd shared/docs/sphinx-site
 
    # Install dependencies
-   pip install -r requirements.txt
+   pip install -e ".[dev,enhanced,quality]"
 
    # Start development server
    make livehtml

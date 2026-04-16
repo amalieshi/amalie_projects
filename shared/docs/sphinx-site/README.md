@@ -9,30 +9,81 @@ Visit the documentation at: **https://yourusername.github.io/amalie_projects**
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.9+ (recommended: Python 3.11)
+- Python 3.8+ (recommended: Python 3.11+)
 - pip (Python package manager)
+
+### Installation Options
+
+#### Option 1: Using pyproject.toml (Recommended)
+```bash
+# Install basic dependencies
+pip install -e .
+
+# Install with development tools
+pip install -e ".[dev,enhanced,quality]" 
+
+# Install all optional dependencies
+pip install -e ".[all]"
+```
+
+#### Option 2: Using requirements.txt (Legacy)
+```bash
+pip install -r requirements.txt
+```
 
 ### Local Development
 
-1. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+#### Using the docs.py script (Cross-platform)
+```bash
+# Install dependencies
+python docs.py install --dev
 
-2. **Build the site**:
-   ```bash
-   make html
-   ```
+# Build documentation
+python docs.py build
 
-3. **Start development server**:
-   ```bash
-   make livehtml
-   ```
-   
-   This starts a local server at `http://localhost:8000` with auto-reload.
+# Serve with auto-reload (recommended for development)
+python docs.py serve
+
+# Run quality checks
+python docs.py lint
+
+# Clean build files
+python docs.py clean
+```
+
+#### Using traditional commands
+```bash
+# Build the site
+python -m sphinx -b html source build/html
+
+# Start development server (if sphinx-autobuild is installed)
+python -m sphinx_autobuild source build/html --host 127.0.0.1 --port 8000
+
+# Run quality checks
+python -m rstcheck --recursive source/
+python -m doc8 source/
+```
+
+#### Using Make (Linux/macOS)
+```bash
+make html          # Build HTML documentation  
+make livehtml      # Development server with auto-reload
+make clean         # Remove build artifacts
+```
 
 ### Available Commands
 
+#### docs.py Script Commands
+| Command | Description |
+|---------|-------------|
+| `python docs.py install` | Install basic dependencies |
+| `python docs.py install --dev` | Install development dependencies |
+| `python docs.py build` | Build HTML documentation |
+| `python docs.py serve` | Development server with auto-reload |
+| `python docs.py lint` | Run documentation quality checks |
+| `python docs.py clean` | Remove build artifacts |
+
+#### Traditional Make Commands (Linux/macOS)
 | Command | Description |
 |---------|-------------|
 | `make html` | Build HTML documentation |
@@ -59,7 +110,7 @@ sphinx-site/
 │   ├── conf.py            # Sphinx configuration
 │   └── index.rst          # Homepage
 ├── build/                 # Generated HTML (ignored by git)
-├── requirements.txt       # Python dependencies
+├── pyproject.toml         # Python project configuration & dependencies
 ├── Makefile              # Build commands
 └── README.md             # This file
 ```

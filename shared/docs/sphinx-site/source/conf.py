@@ -31,10 +31,34 @@ extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinx_design",
+    "sphinx_tabs.tabs",
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = ["sphinx-site/**"]
+exclude_patterns = ["sphinx-site/**", "docs/learning-paths.md"]
+
+# MyST configuration - Support both RST and Markdown
+source_suffix = {
+    ".rst": None,
+    ".md": None,
+}
+
+# MyST parser configuration
+myst_enable_extensions = [
+    "dollarmath",
+    "amsmath",
+    "deflist",
+    "fieldlist",
+    "html_admonition",
+    "html_image",
+    "colon_fence",
+    "smartquotes",
+    "replacements",
+    "linkify",
+    "strikethrough",
+    "substitution",
+    "tasklist",
+]
 
 # Additional source directories
 # This allows including files from the parent docs directory

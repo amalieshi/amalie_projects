@@ -53,7 +53,7 @@ check:
 
 # Install development dependencies
 install-dev:
-	@pip install -r requirements.txt
+	@pip install -e ".[dev,enhanced,quality]"
 	@echo "Development dependencies installed!"
 
 # Catch-all target: route all unknown targets to Sphinx using the new

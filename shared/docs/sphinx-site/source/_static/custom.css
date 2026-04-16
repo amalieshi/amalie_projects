@@ -1,0 +1,262 @@
+/* Custom CSS for Amalie's Development Portfolio */
+
+/* Hero Section Styling */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    margin: -1.5rem -2rem 2rem -2rem;
+    border-radius: 0 0 1rem 1rem;
+    text-align: center;
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    font-weight: 300;
+    margin-bottom: 0;
+}
+
+/* Project Cards */
+.project-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--color-background-border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.project-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.tech-card {
+    background: var(--color-background-secondary);
+    border-left: 4px solid var(--color-brand-primary);
+    padding: 1.5rem;
+    transition: background-color 0.3s ease;
+}
+
+.tech-card:hover {
+    background: var(--color-background-hover);
+}
+
+/* Statistics Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.stat-item {
+    padding: 1.5rem;
+    background: var(--color-background-secondary);
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-background-border);
+}
+
+.stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-brand-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--color-foreground-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Project Statistics */
+.project-stats {
+    background: var(--color-background-secondary);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    margin: 2rem 0;
+    border: 1px solid var(--color-background-border);
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.project-stats .stat-item {
+    background: transparent;
+    border: none;
+    padding: 1rem;
+    flex: 1;
+    min-width: 100px;
+}
+
+/* Footer CTA */
+.footer-cta {
+    background: var(--color-background-secondary);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid var(--color-brand-primary);
+    margin: 3rem 0;
+    text-align: center;
+}
+
+.footer-cta p {
+    margin: 0;
+    font-style: italic;
+    color: var(--color-foreground-muted);
+}
+
+/* Enhanced Tables */
+table.docutils {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+}
+
+table.docutils th {
+    background: var(--color-brand-primary);
+    color: white;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+}
+
+table.docutils td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--color-background-border);
+}
+
+table.docutils tbody tr:hover {
+    background: var(--color-background-secondary);
+}
+
+/* Status Indicators */
+.status-complete::before {
+    content: "✅ ";
+}
+
+.status-progress::before {
+    content: "🚧 ";
+}
+
+.status-planned::before {
+    content: "📋 ";
+}
+
+/* Code Blocks Enhancement */
+.highlight pre {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-background-border);
+    position: relative;
+    background: var(--color-background-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .hero-section {
+        padding: 2rem 1rem;
+        margin: -1rem -1rem 1.5rem -1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .stat-row {
+        flex-direction: column;
+    }
+}
+
+/* Dark Mode Specific Adjustments */
+@media (prefers-color-scheme: dark) {
+    .hero-section {
+        background: linear-gradient(135deg, #4c63d2 0%, #5a4bb3 100%);
+    }
+    
+    .project-card:hover {
+        box-shadow: 0 8px 25px rgba(255,255,255,0.1);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .hero-section {
+        background: #667eea;
+        color: white;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    .project-card,
+    .tech-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+
+/* Accessibility Improvements */
+.project-card:focus-within,
+.tech-card:focus-within {
+    outline: 2px solid var(--color-brand-primary);
+    outline-offset: 2px;
+}
+
+/* Animation for loading states */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-background-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-brand-primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-brand-content);
+}

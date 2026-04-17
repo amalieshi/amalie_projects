@@ -1,0 +1,10 @@
+include README.md
+include LICENSE
+include pyproject.toml
+include test_api.py
+include build_package.py
+recursive-include src *.py
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude *.so
+global-exclude .DS_Store

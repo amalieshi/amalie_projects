@@ -1,0 +1,174 @@
+{% extends 'testing/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Dashboard - Todo API Orchestrator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">📊 Dashboard Overview</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">
+                    Welcome to the Todo API Orchestrator! This tool helps you manage and test the FastAPI Todo List API.
+                </p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>🚀 Quick Actions</h5>
+                        <div class="d-grid gap-2">
+                            {% if server_status.is_running %}
+                                <button class="btn btn-danger" onclick="controlServer('stop')">
+                                    <i class="fas fa-stop"></i> Stop FastAPI Server
+                                </button>
+                                <a href="{% url 'todo_management' %}" class="btn btn-primary">
+                                    <i class="fas fa-list-check"></i> View Todo List
+                                </a>
+                                <a href="{% url 'swagger_redirect' %}" target="_blank" class="btn btn-info">
+                                    <i class="fas fa-book"></i> Open Swagger UI
+                                </a>
+                                <a href="{% url 'api_test' %}" class="btn btn-success">
+                                    <i class="fas fa-flask"></i> Start Testing API
+                                </a>
+                            {% else %}
+                                <button class="btn btn-success" onclick="controlServer('start')">
+                                    <i class="fas fa-play"></i> Start FastAPI Server
+                                </button>
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    The FastAPI server needs to be running to test the API.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5>ℹ️ Server Information</h5>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if server_status.is_running %}
+                                        <span class="badge bg-success">Online</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Offline</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Port:</strong></td>
+                                <td>{{ server_status.port }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>URL:</strong></td>
+                                <td>
+                                    <a href="{{ fastapi_url }}" target="_blank">{{ fastapi_url }}</a>
+                                </td>
+                            </tr>
+                            {% if server_status.pid %}
+                            <tr>
+                                <td><strong>Process ID:</strong></td>
+                                <td>{{ server_status.pid }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if server_status.start_time %}
+                            <tr>
+                                <td><strong>Started:</strong></td>
+                                <td>{{ server_status.start_time|date:"M d, Y H:i:s" }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📋 Available API Endpoints</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><code>GET /</code></span>
+                        <span class="badge bg-primary rounded-pill">Info</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><code>GET /todos</code></span>
+                        <span class="badge bg-success rounded-pill">Read</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><code>POST /todos</code></span>
+                        <span class="badge bg-warning rounded-pill">Create</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><code>PUT /todos/{id}</code></span>
+                        <span class="badge bg-info rounded-pill">Update</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><code>DELETE /todos/{id}</code></span>
+                        <span class="badge bg-danger rounded-pill">Delete</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if recent_tests %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">📈 Recent Test History</h5>
+                <a href="{% url 'api_test' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Status</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in recent_tests %}
+                            <tr class="{% if test.success %}test-success{% else %}test-failure{% endif %}">
+                                <td>{{ test.timestamp|date:"H:i:s" }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ test.method }}</span>
+                                </td>
+                                <td><code>{{ test.endpoint }}</code></td>
+                                <td>
+                                    {% if test.success %}
+                                        <span class="badge bg-success">{{ test.status_code }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ test.status_code }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="execution-time">{{ test.execution_time|floatformat:3 }}s</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Hidden CSRF token for JavaScript -->
+{% csrf_token %}
+
+{% endblock %}

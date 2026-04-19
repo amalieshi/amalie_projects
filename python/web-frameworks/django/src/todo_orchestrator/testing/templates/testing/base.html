@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Todo API Orchestrator{% endblock %}</title>
+    
+    {% load django_bootstrap5 %}
+    {% bootstrap_css %}
+    
+    <style>
+        .server-status-online {
+            color: #28a745;
+        }
+        .server-status-offline {
+            color: #dc3545;
+        }
+        .test-success {
+            background-color: #d4edda !important;
+        }
+        .test-failure {
+            background-color: #f8d7da !important;
+        }
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .btn-group .btn {
+            margin-right: 0.25rem;
+        }
+        .execution-time {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                🔧 Todo API Orchestrator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'todo_management' %}active{% endif %}" 
+                           href="{% url 'todo_management' %}">Todo List</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'api_test' %}active{% endif %}" 
+                           href="{% url 'api_test' %}">API Testing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'swagger_redirect' %}" target="_blank">
+                            Swagger UI <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="navbar-text">
+                            <span id="server-status" class="server-status-offline">
+                                Server: <span id="status-text">Checking...</span>
+                            </span>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Display Django messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    {% bootstrap_javascript %}
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        // Check server status periodically
+        function updateServerStatus() {
+            fetch('{% url "server_status_api" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const statusElement = document.getElementById('server-status');
+                    const statusTextElement = document.getElementById('status-text');
+                    
+                    if (data.is_running) {
+                        statusElement.className = 'server-status-online';
+                        statusTextElement.textContent = `Online (Port: ${data.port})`;
+                    } else {
+                        statusElement.className = 'server-status-offline';
+                        statusTextElement.textContent = 'Offline';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking server status:', error);
+                    const statusElement = document.getElementById('server-status');
+                    const statusTextElement = document.getElementById('status-text');
+                    statusElement.className = 'server-status-offline';
+                    statusTextElement.textContent = 'Error';
+                });
+        }
+
+        // Update status immediately and then every 10 seconds
+        updateServerStatus();
+        setInterval(updateServerStatus, 10000);
+
+        // Handle server control buttons
+        function controlServer(action) {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch('{% url "server_control" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `action=${action}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message and update status
+                    updateServerStatus();
+                    setTimeout(() => {
+                        location.reload(); // Reload to show updated messages
+                    }, 1000);
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error controlling server:', error);
+                alert('Error controlling server');
+            });
+        }
+    </script>
+
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

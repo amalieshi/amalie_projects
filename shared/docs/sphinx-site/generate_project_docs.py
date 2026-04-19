@@ -244,7 +244,7 @@ def generate_project_rst(readmes: list[dict], output_dir: Path):
 
 This section showcases all {cat_name.lower()} projects with their documentation and source code.
 
-.. admonition:: 💡 Navigation Tip
+.. admonition:: Navigation Tip
    :class: tip
 
    Click on any project card to view its complete documentation, or use the dropdown to preview key information.
@@ -336,7 +336,7 @@ This section showcases all {cat_name.lower()} projects with their documentation 
       
       **Technologies:** {', '.join(project['technologies']) if project['technologies'] else 'Various'}
       
-      .. dropdown:: 📖 Quick Preview
+      .. dropdown:: Quick Preview
          :color: info
          :icon: book
 
@@ -456,17 +456,17 @@ def update_projects_index(
 """
 
     category_display_names = {
-        "python_web-frameworks": "🐍 Python Web Frameworks",
-        "python_data-science": "📊 Python Data Science",
-        "python_utilities": "🔧 Python Utilities",
-        "csharp_console-apps": "💻 C# Console Apps",
-        "csharp_desktop-apps": "🖥️ C# Desktop Apps",
-        "csharp_web-development": "🌐 C# Web Development",
-        "frontend_react": "⚛️ React Projects",
-        "frontend_vue": "💚 Vue.js Projects",
-        "machine-learning_pytorch": "🔥 PyTorch Projects",
-        "machine-learning_tensorflow": "🧠 TensorFlow Projects",
-        "fullstack-projects": "🚀 Full-Stack Projects",
+        "python_web-frameworks": "Python Web Frameworks",
+        "python_data-science": "Python Data Science",
+        "python_utilities": "Python Utilities",
+        "csharp_console-apps": "C# Console Apps",
+        "csharp_desktop-apps": "C# Desktop Apps",
+        "csharp_web-development": "C# Web Development",
+        "frontend_react": "React Projects",
+        "frontend_vue": "Vue.js Projects",
+        "machine-learning_pytorch": "PyTorch Projects",
+        "machine-learning_tensorflow": "TensorFlow Projects",
+        "fullstack-projects": "Full-Stack Projects",
     }
 
     for category in sorted(categories):

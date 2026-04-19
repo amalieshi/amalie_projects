@@ -77,7 +77,7 @@ python -m doc8 source/
 | `python docs.py lint` | Run documentation quality checks |
 | `python docs.py clean` | Remove build artifacts |
 
-## 📁 Structure
+## Structure
 
 ```
 sphinx-site/
@@ -97,7 +97,7 @@ sphinx-site/
 └── README.md             # This file
 ```
 
-## 🎨 Features
+## Features
 
 - **Modern Design**: Clean, responsive layout with the Furo theme
 - **Auto-Discovery**: Automatically includes README files from your projects 
@@ -130,13 +130,13 @@ python docs.py discover
 
 
 ### Benefits
-- ✅ **Automatic**: New projects appear instantly when you add README files
-- ✅ **Organized**: Projects grouped by technology categories  
-- ✅ **Scalable**: Handles unlimited projects with card-based navigation
-- ✅ **Consistent**: Uniform styling and structure across all projects
-- ✅ **Single Source**: README files remain your primary documentation
+- **Automatic**: New projects appear instantly when you add README files
+- **Organized**: Projects grouped by technology categories  
+- **Scalable**: Handles unlimited projects with card-based navigation
+- **Consistent**: Uniform styling and structure across all projects
+- **Single Source**: README files remain your primary documentation
 
-## 🔧 Adding Projects
+## Adding Projects
 
 ### Automatic Discovery
 Simply add a `README.md` file to any project in these directories:
@@ -151,7 +151,7 @@ Simply add a `README.md` file to any project in these directories:
 ### Manual Content
 Add custom documentation by creating `.rst` or `.md` files in `source/` and adding them to the relevant `index.rst` toctree.
 
-## 🎨 Customization
+## Customization
 
 ### Theme Options
 The site uses the [Furo](https://pradyunsg.me/furo/) theme. Customize colors, layout, and navigation in `source/conf.py`.
@@ -177,7 +177,7 @@ Edit `generate_project_docs.py` to add new project directories or customize cate
 - `myst-parser`: Markdown parsing support
 - `sphinx-tabs`: Tabbed content interface
 
-## �🚀 Deployment
+## Deployment
 
 ### Automatic (GitHub Pages)
 - Push changes to `main` branch

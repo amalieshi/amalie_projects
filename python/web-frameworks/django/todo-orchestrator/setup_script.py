@@ -14,19 +14,19 @@ def run_command(cmd, cwd=None):
     """Run a shell command and return success status"""
     try:
         result = subprocess.run(cmd, shell=True, cwd=cwd, check=True, capture_output=True, text=True)
-        print(f"✓ {cmd}")
+        print(f"Success: {cmd}")
         if result.stdout.strip():
             print(f"  Output: {result.stdout.strip()}")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"✗ {cmd}")
+        print(f"Failed: {cmd}")
         print(f"  Error: {e.stderr.strip()}")
         return False
 
 
 def main():
     """Main setup routine"""
-    print("🔧 Todo API Orchestrator Setup")
+    print("Todo API Orchestrator Setup")
     print("=" * 40)
     
     # Get the project directory
@@ -37,38 +37,38 @@ def main():
     print(f"Django directory: {django_dir}")
     
     if not django_dir.exists():
-        print("❌ Django project directory not found!")
+        print("Django project directory not found!")
         return False
     
     # Change to Django directory for management commands
     os.chdir(django_dir)
     
-    print("\n📋 Setup Steps:")
+    print("\nSetup Steps:")
     print("1. Installing Django orchestrator with FastAPI server dependencies...")
     
     # Install the orchestrator with FastAPI server dependencies
     if not run_command("python -m pip install -e .[fastapi-server]", project_dir):
-        print("❌ Failed to install Django orchestrator with dependencies")
+        print("Failed to install Django orchestrator with dependencies")
         return False
     
     print("\n2. Running Django migrations...")
     
     # Run migrations
     if not run_command("python manage.py makemigrations"):
-        print("⚠️  Warning: Could not create migrations (this might be expected)")
+        print("Warning: Could not create migrations (this might be expected)")
     
     if not run_command("python manage.py migrate"):
-        print("❌ Failed to run migrations")
+        print("Failed to run migrations")
         return False
     
     print("\n3. Collecting static files...")
     
     # Collect static files
     if not run_command("python manage.py collectstatic --noinput"):
-        print("⚠️  Warning: Could not collect static files")
+        print("Warning: Could not collect static files")
     
-    print("\n✅ Setup completed successfully!")
-    print("\n🚀 Next steps:")
+    print("\nSetup completed successfully!")
+    print("\nNext steps:")
     print("1. Navigate to the Django project directory:")
     print(f"   cd {django_dir}")
     print("\n2. Start the Django development server:")
@@ -78,7 +78,7 @@ def main():
     print("\n4. Use the dashboard to start the FastAPI server and begin testing!")
     
     # Optional: Create superuser
-    print("\n🔑 Optional: Create a Django superuser for admin access")
+    print("\nOptional: Create a Django superuser for admin access")
     create_superuser = input("Would you like to create a superuser now? (y/N): ").strip().lower()
     if create_superuser in ['y', 'yes']:
         run_command("python manage.py createsuperuser")

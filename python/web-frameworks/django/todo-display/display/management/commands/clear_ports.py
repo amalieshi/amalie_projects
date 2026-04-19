@@ -70,7 +70,7 @@ class Command(BaseCommand):
                 processes = manager.get_processes_using_port(port)
             
             if not processes:
-                self.stdout.write(success_style(f"✓ Port {port} is available"))
+                self.stdout.write(success_style(f"Port {port} is available"))
                 continue
                 
             self.stdout.write(warning_style(f"Found {len(processes)} process(es) using port {port}:"))
@@ -94,19 +94,19 @@ class Command(BaseCommand):
                     
                 if killed:
                     total_killed += len(killed)
-                    self.stdout.write(success_style(f"✓ Successfully killed {len(killed)} process(es) on port {port}"))
+                    self.stdout.write(success_style(f"Successfully killed {len(killed)} process(es) on port {port}"))
                 else:
                     self.stdout.write(warning_style(f"No processes were killed on port {port}"))
                     
             except Exception as e:
-                self.stdout.write(error_style(f"✗ Error clearing port {port}: {str(e)}"))
+                self.stdout.write(error_style(f"Error clearing port {port}: {str(e)}"))
 
         # Summary
         self.stdout.write(f"\n--- Summary ---")
         if options['dry_run']:
             self.stdout.write("Dry run completed. No processes were actually killed.")
         elif total_killed > 0:
-            self.stdout.write(success_style(f"✓ Successfully cleared {total_killed} process(es) across {len(ports_to_clear)} port(s)"))
+            self.stdout.write(success_style(f"Successfully cleared {total_killed} process(es) across {len(ports_to_clear)} port(s)"))
             self.stdout.write("You can now start your Django server without port conflicts.")
         else:
             self.stdout.write("No processes needed to be killed. All specified ports were available.")

@@ -75,7 +75,7 @@ python manage.py runserver 8001
 4. **Manage todos** with full debugging capabilities
 5. **Monitor API logs** in the dedicated logs tab
 
-## 🔗 Dependencies
+## Dependencies
 
 - **FastAPI Server**: Must be running on port 8000
 - **Django 6.0.4**: Web framework
@@ -83,7 +83,7 @@ python manage.py runserver 8001
 - **Requests**: HTTP client for API communication
 - **psutil**: System process management
 
-## 📊 Default Ports
+## Default Ports
 
 - **Todo Orchestrator**: http://localhost:8001
 - **FastAPI Server**: http://localhost:8000 (managed by orchestrator)

@@ -3,7 +3,7 @@ Projects Showcase
 
 Welcome to my development journey! This is the beginning of documenting my projects and learning progress across various technologies.
 
-.. admonition:: 🚀 Getting Started
+.. admonition:: Getting Started
    :class: tip
 
    This portfolio is in active development. Projects are automatically discovered from the repository structure as they are created.
@@ -38,7 +38,7 @@ The repository is organized by technology stacks to facilitate learning and easy
    ├── machine-learning/         # ML and AI projects
    └── shared/docs/              # Documentation and guides
 
-.. admonition:: 📖 Auto-Discovery System
+.. admonition:: Auto-Discovery System
    :class: note
 
    This documentation site automatically discovers projects with README files and creates individual project pages. Simply add a README.md to any project directory to have it appear here automatically.
@@ -60,7 +60,7 @@ The repository is organized by technology stacks to facilitate learning and easy
    :gutter: 3
    :margin: 3
 
-   .. grid-item-card:: 🐍 Python Web Frameworks
+   .. grid-item-card:: Python Web Frameworks
       :link: python_web-frameworks
       :link-type: doc
       :text-align: center

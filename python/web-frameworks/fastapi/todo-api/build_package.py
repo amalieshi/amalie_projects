@@ -24,10 +24,10 @@ def run_command(command, description):
         if result.stdout:
             print("Output:")
             print(result.stdout)
-        print("✅ Success!")
+        print("Success!")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error (exit code {e.returncode}):")
+        print(f"Error (exit code {e.returncode}):")
         print(e.stderr)
         return False
 
@@ -42,7 +42,7 @@ def main():
     print(f"Working directory: {project_root}")
 
     # Clean previous builds
-    print("\n🧹 Cleaning previous builds...")
+    print("\nCleaning previous builds...")
     if os.path.exists("dist"):
         import shutil
 
@@ -68,7 +68,7 @@ def main():
         sys.exit(1)
 
     # List the built files
-    print("\n📦 Built files:")
+    print("\nBuilt files:")
     if os.path.exists("dist"):
         for file in os.listdir("dist"):
             file_path = os.path.join("dist", file)
@@ -80,7 +80,7 @@ def main():
         print("Package check failed")
         sys.exit(1)
 
-    print("\n🎉 Package built successfully!")
+    print("\nPackage built successfully!")
     print("\nNext steps:")
     print(
         "1. Test installation: pip install dist/fastapi_todo_list-1.0.0-py3-none-any.whl"

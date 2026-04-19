@@ -4,7 +4,7 @@ Python Web-Frameworks Projects
 
 This section showcases all python web-frameworks projects with their documentation and source code.
 
-.. admonition:: 💡 Navigation Tip
+.. admonition:: Navigation Tip
    :class: tip
 
    Click on any project card to view its complete documentation, or use the dropdown to preview key information.
@@ -148,7 +148,7 @@ This section showcases all python web-frameworks projects with their documentati
       
       **Technologies:** FastAPI, Django, Python, SQLite
       
-      .. dropdown:: 📖 Quick Preview
+      .. dropdown:: Quick Preview
          :color: info
          :icon: book
 
@@ -165,7 +165,7 @@ This section showcases all python web-frameworks projects with their documentati
       
       **Technologies:** FastAPI, Django, Python
       
-      .. dropdown:: 📖 Quick Preview
+      .. dropdown:: Quick Preview
          :color: info
          :icon: book
 

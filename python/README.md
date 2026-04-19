@@ -58,7 +58,7 @@ pip install pandas numpy matplotlib seaborn plotly jupyter scikit-learn
 pip install requests beautifulsoup4 click typer python-dotenv
 ```
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### Official Documentation
 - [Python Documentation](https://docs.python.org/3/)
@@ -72,7 +72,7 @@ pip install requests beautifulsoup4 click typer python-dotenv
 - Python Data Science Handbook (Jake VanderPlas)
 - Automate the Boring Stuff with Python (Al Sweigart)
 
-## 🚀 Quick Start Templates
+## Quick Start Templates
 
 ### Create Virtual Environment
 ```bash
@@ -122,7 +122,7 @@ print(df.info())
 print(df.describe())
 ```
 
-## 📝 Project Organization
+## Project Organization
 
 ### Standard Project Structure
 ```
@@ -150,7 +150,7 @@ django_project/
 └── .env
 ```
 
-## ✅ Best Practices Checklist
+## Best Practices Checklist
 
 - [ ] Use virtual environments for dependency isolation
 - [ ] Follow PEP 8 style guidelines  

@@ -8,7 +8,7 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title mb-0">📝 Todo List Management</h4>
+                <h4 class="card-title mb-0">Todo List Management</h4>
             </div>
             <div class="card-body">
                 {% if not server_status.is_running %}
@@ -361,7 +361,7 @@
             form.addEventListener('submit', function(e) {
                 const action = this.querySelector('input[name=\"action\"]')?.value;
                 const todoId = this.querySelector('input[name=\"todo_id\"]')?.value;
-                console.log(`🚀 Form submitting: action=${action}, todoId=${todoId}`);
+                console.log(`Form submitting: action=${action}, todoId=${todoId}`);
                 console.log('Form method:', this.method);
                 console.log('Form action:', this.action || 'current page');
                 // Let form submit naturally - no preventDefault!

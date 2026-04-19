@@ -25,12 +25,12 @@ except ImportError:
 
 def run_command(cmd, check=True, **kwargs):
     """Run a command and handle errors."""
-    print(f"🚀 Running: {' '.join(cmd)}")
+    print(f"Running: {' '.join(cmd)}")
     try:
         result = subprocess.run(cmd, check=check, **kwargs)
         return result
     except subprocess.CalledProcessError as e:
-        print(f"❌ Command failed with exit code {e.returncode}")
+        print(f"Command failed with exit code {e.returncode}")
         if check:
             sys.exit(e.returncode)
         return e
@@ -38,15 +38,15 @@ def run_command(cmd, check=True, **kwargs):
 
 def clean():
     """Clean build directories."""
-    print("🧹 Cleaning build directories...")
+    print("Cleaning build directories...")
     if BUILD_DIR.exists():
         shutil.rmtree(BUILD_DIR)
-    print("✅ Build directories cleaned")
+    print("Build directories cleaned")
 
 
 def install_deps(dev=False, all_deps=False):
     """Install project dependencies."""
-    print("📦 Installing dependencies...")
+    print("Installing dependencies...")
 
     if all_deps:
         cmd = [sys.executable, "-m", "pip", "install", "-e", ".[all]"]
@@ -56,54 +56,88 @@ def install_deps(dev=False, all_deps=False):
         cmd = [sys.executable, "-m", "pip", "install", "-e", "."]
 
     run_command(cmd)
-    print("✅ Dependencies installed")
+    print("Dependencies installed")
 
 
 def discover_projects():
     """Run project discovery to generate documentation for all README files."""
-    print("🔍 Discovering and generating project documentation...")
+    print("Scanning repository for README files...")
+    print("Auto-generating project documentation pages...")
 
     if generate_projects is None:
-        print("❌ generate_project_docs.py not found. Auto-discovery disabled.")
+        print("generate_project_docs.py not found. Auto-discovery disabled.")
+        print("Make sure the generate_project_docs.py file exists in this directory.")
         return False
 
     try:
         generate_projects()
-        print("✅ Project documentation generated successfully!")
         return True
     except Exception as e:
-        print(f"❌ Project discovery failed: {e}")
+        print(f"Project discovery failed: {e}")
+        import traceback
+        print("Full error details:")
+        traceback.print_exc()
         return False
 
 
-def build_html():
+def build_projects():
+    """Build project documentation from README files."""
+    print("\n" + "="*60)
+    print("STEP 1: BUILDING PROJECT DOCUMENTATION")
+    print("="*60)
+    
+    if not discover_projects():
+        print("Project discovery failed, but continuing with build...")
+        return False
+    
+    print("Project documentation generation complete!")
+    return True
+
+
+def build_html(skip_projects=False):
     """Build HTML documentation."""
-    print("🏗️  Building HTML documentation...")
-
-    # Run project discovery first
-    print("🔍 Running project discovery...")
-    discover_projects()  # Don't fail build if discovery fails
-
+    print("\n" + "="*60)
+    print("BUILDING COMPLETE DOCUMENTATION SITE")
+    print("="*60)
+    
+    success = True
+    
+    # Step 1: Build project documentation (unless skipped)
+    if not skip_projects:
+        if not build_projects():
+            print("Project documentation build had issues, continuing...")
+    else:
+        print("⏭️  Skipping project documentation generation...")
+    
+    # Step 2: Build main documentation
+    print("\n" + "="*60)
+    print("STEP 2: BUILDING SPHINX DOCUMENTATION")
+    print("="*60)
+    
     # Ensure build directory exists
     BUILD_DIR.mkdir(exist_ok=True)
 
     cmd = [sys.executable, "-m", "sphinx", "-b", "html", str(SOURCE_DIR), str(HTML_DIR)]
-
     result = run_command(cmd, check=False)
 
     if result.returncode == 0:
-        print(f"✅ HTML documentation built successfully!")
-        print(f"📖 Open {HTML_DIR / 'index.html'} in your browser")
+        print("\n" + "="*60)
+        print("BUILD COMPLETE!")
+        print("="*60)
+        print(f"Open {HTML_DIR / 'index.html'} in your browser")
+        print(f"Or run 'python docs.py serve' for development server")
     else:
-        print("❌ Build failed")
-        return False
+        print("\n" + "="*60)
+        print("BUILD FAILED")
+        print("="*60)
+        success = False
 
-    return True
+    return success
 
 
 def serve():
     """Serve documentation with auto-rebuild."""
-    print("🌐 Starting documentation server with auto-rebuild...")
+    print("Starting documentation server with auto-rebuild...")
 
     cmd = [
         sys.executable,
@@ -121,31 +155,31 @@ def serve():
     try:
         run_command(cmd)
     except KeyboardInterrupt:
-        print("\n👋 Server stopped")
+        print("\nServer stopped")
 
 
 def lint():
     """Run documentation linting and quality checks."""
-    print("🔍 Running documentation quality checks...")
+    print("Running documentation quality checks...")
 
     success = True
 
     # Check RST files with rstcheck
-    print("\n📝 Checking RST syntax...")
+    print("\nChecking RST syntax...")
     cmd = [sys.executable, "-m", "rstcheck", "--recursive", str(SOURCE_DIR)]
     result = run_command(cmd, check=False)
     if result.returncode != 0:
         success = False
 
     # Check documentation style with doc8
-    print("\n🎨 Checking documentation style...")
+    print("\nChecking documentation style...")
     cmd = [sys.executable, "-m", "doc8", str(SOURCE_DIR)]
     result = run_command(cmd, check=False)
     if result.returncode != 0:
         success = False
 
     # Run Sphinx in nitpicky mode to catch warnings
-    print("\n🔧 Running Sphinx nitpicky build...")
+    print("\nRunning Sphinx nitpicky build...")
     cmd = [
         sys.executable,
         "-m",
@@ -163,9 +197,9 @@ def lint():
         success = False
 
     if success:
-        print("✅ All quality checks passed!")
+        print("All quality checks passed!")
     else:
-        print("❌ Some quality checks failed")
+        print("Some quality checks failed")
         return False
 
     return True
@@ -205,7 +239,15 @@ Examples:
     )
 
     # Build command
-    subparsers.add_parser("build", help="Build HTML documentation")
+    build_parser = subparsers.add_parser("build", help="Build HTML documentation")
+    build_parser.add_argument(
+        "--skip-projects", action="store_true", help="Skip project documentation generation"
+    )
+    
+    # Projects command
+    subparsers.add_parser(
+        "projects", help="Build only project documentation from README files"
+    )
 
     # Serve command
     subparsers.add_parser("serve", help="Serve documentation with auto-rebuild")
@@ -231,8 +273,10 @@ Examples:
         install_deps(dev=args.dev, all_deps=args.all)
     elif args.command == "discover":
         discover_projects()
+    elif args.command == "projects":
+        build_projects()
     elif args.command == "build":
-        build_html()
+        build_html(skip_projects=args.skip_projects)
     elif args.command == "serve":
         serve()
     elif args.command == "lint":

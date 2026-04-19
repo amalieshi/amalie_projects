@@ -28,9 +28,16 @@ class TodoManagementView(View):
         active_todos_result = client.get_todos('todos')
         completed_todos_result = client.get_todos('todos/completed')
         
+        # Debug logging
+        print(f"DEBUG GET: Active todos count: {len(active_todos_result.get('data', [])) if active_todos_result.get('success') else 'FAILED'}")
+        print(f"DEBUG GET: Completed todos count: {len(completed_todos_result.get('data', [])) if completed_todos_result.get('success') else 'FAILED'}")
+        
         # Check server status
         server_manager = FastAPIServerManager()
         server_status = server_manager.get_server_status()
+        
+        # Get recent test history for logs tab
+        recent_tests = APITestHistory.objects.all().order_by('-timestamp')[:20]
         
         context = {
             'server_status': server_status,
@@ -41,6 +48,7 @@ class TodoManagementView(View):
             'all_todos_success': all_todos_result.get('success', False),
             'active_todos_success': active_todos_result.get('success', False),
             'completed_todos_success': completed_todos_result.get('success', False),
+            'recent_tests': recent_tests,
         }
         return render(request, 'testing/todo_management.html', context)
     
@@ -77,12 +85,35 @@ class TodoManagementView(View):
                 if result['success']:
                     status_text = "completed" if new_status else "marked as incomplete"
                     messages.success(request, f"Todo '{todo['title']}' {status_text} successfully! Status: {result['status_code']}")
+                    
+                    # Add small delay to ensure database transaction is committed
+                    import time
+                    time.sleep(0.1)
                 else:
                     messages.error(request, f"Error updating todo '{todo['title']}': {result.get('error', 'Unknown error')}")
                     print(f"DEBUG: Update failed - {result}")
             else:
                 messages.error(request, f"Error getting todo details for ID {todo_id}: {current_todo.get('error', 'Unknown error')}")
                 print(f"DEBUG: Get todo failed - {current_todo}")
+                
+        elif action == 'edit':
+            # Get the form data
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            completed = request.POST.get('completed') == 'on'
+            
+            if not title:
+                messages.error(request, "Title is required")
+                return redirect('todo_management')
+            
+            # Update the todo
+            result = client.update_todo(todo_id, title=title, description=description, completed=completed)
+            
+            if result['success']:
+                messages.success(request, f"Todo '{title}' updated successfully! Status: {result['status_code']}")
+            else:
+                messages.error(request, f"Error updating todo: {result.get('error', 'Unknown error')}")
+                print(f"DEBUG: Edit failed - {result}")
         
         return redirect('todo_management')
 

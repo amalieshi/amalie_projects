@@ -1,53 +1,115 @@
-# Todo API Orchestrator
+# Django Web Applications
 
-A Django-based testing orchestration tool for the FastAPI Todo List API. This web application provides a user-friendly interface to manage, test, and interact with the FastAPI Todo List API.
-
-## Features
-
-- **Server Management**: Start and stop the FastAPI server with one-click buttons
-- **Swagger UI Integration**: Direct access to the API's Swagger documentation
-- **API Testing Interface**: Interactive forms to test all API endpoints
-- **Real-time Response Display**: View API responses in a formatted, readable manner
-- **Request History**: Keep track of previous API requests and responses
+This directory contains multiple Django web applications for different purposes, each with its own `pyproject.toml` for dependency management.
 
 ## Project Structure
 
 ```
 django/
-├── src/
-│   └── todo_orchestrator/
-│       ├── manage.py              # Django management script
-│       ├── todo_orchestrator/     # Main Django project
-│       │   ├── __init__.py
-│       │   ├── settings.py        # Django settings
-│       │   ├── urls.py           # Main URL configuration
-│       │   └── wsgi.py           # WSGI configuration
-│       └── testing/               # Testing orchestration app
-│           ├── __init__.py
-│           ├── admin.py
-│           ├── apps.py
-│           ├── models.py          # Data models for test history
-│           ├── views.py           # Views for orchestration interface
-│           ├── urls.py            # App URL configuration
-│           ├── forms.py           # Forms for API testing
-│           ├── utils.py           # Utility functions for server management
-│           ├── templates/         # HTML templates
-│           │   └── testing/
-│           │       ├── base.html
-│           │       ├── dashboard.html
-│           │       └── api_test.html
-│           └── static/            # CSS and JavaScript files
-│               └── testing/
-│                   ├── css/
-│                   └── js/
-├── pyproject.toml                 # Project configuration
-├── README.md                      # This file
-└── LICENSE                        # MIT License
+├── todo-orchestrator/          # Developer testing & management tool
+│   ├── pyproject.toml         # Dependencies & project config
+│   ├── manage.py              # Django management
+│   ├── todo_orchestrator/     # Main Django project
+│   └── testing/               # Django app
+├── todo-display/               # User-focused todo interface  
+│   ├── pyproject.toml         # Dependencies & project config
+│   ├── manage.py              # Django management
+│   ├── todo_display/          # Main Django project
+│   └── display/               # Django app
+├── LICENSE                     # MIT License
+└── README.md                   # This file
 ```
 
-## Installation
+## Projects
 
-1. **Navigate to the project directory**:
+### 1. todo-orchestrator (Developer Tool)
+**Purpose**: Full-featured Django app for testing and managing the FastAPI Todo List API
+- Server management (start/stop FastAPI)
+- API testing interface with request logging
+- Todo CRUD operations with debugging
+- Real-time todo management with completion tracking
+- Edit functionality for existing todos
+
+**Port**: 8001 (by default)
+**Dependencies**: FastAPI server running on port 8000
+
+### 2. todo-display (User Interface)
+**Purpose**: Lightweight Django app for displaying todos in read-only mode
+- Clean, simple interface for viewing todos
+- Beautiful, responsive design
+- Filter and search functionality
+- One-click todo completion
+- Mobile-optimized user experience
+
+**Port**: 8002 (by default)
+**Dependencies**: FastAPI server running on port 8000
+
+## Getting Started
+
+### Prerequisites
+- Python 3.9+
+- Virtual environment activated
+- FastAPI Todo List API server available
+
+### Running Projects
+
+**Todo Orchestrator (Developers):**
+```bash
+cd todo-orchestrator
+pip install -e .                # Install from pyproject.toml
+python manage.py migrate         # Set up database
+python manage.py runserver 8001  # Start on port 8001
+```
+
+**Todo Display (End Users):**
+```bash
+cd todo-display  
+pip install -e .                # Install from pyproject.toml
+python manage.py migrate         # Set up database
+python manage.py runserver 8002  # Start on port 8002
+```
+
+### Dependency Management
+
+Each project uses modern **pyproject.toml** for dependency management:
+- **No requirements.txt files** - everything is in pyproject.toml
+- **Install with**: `pip install -e .` (editable install)
+- **Dev dependencies**: `pip install -e .[dev]` (if available)
+
+## Adding New Django Projects
+
+To add a new Django project:
+
+1. **Create the project:**
+   ```bash
+   cd /path/to/django/
+   django-admin startproject your_project_name
+   ```
+
+2. **Follow the naming convention:**
+   - Use descriptive, hyphenated names
+   - Examples: `user-management`, `blog-cms`, `analytics-dashboard`
+
+3. **Create pyproject.toml** with dependencies and project metadata
+
+4. **Use unique ports** (8001, 8002, 8003, etc.)
+
+5. **Update this README** with project details
+
+## Development Tips
+
+- Each project is **completely independent** - separate dependencies, databases, settings
+- Use **different ports** to run multiple projects simultaneously  
+- **pyproject.toml is sufficient** - no need for requirements.txt
+- Consider **environment variables** for configuration differences between projects
+
+## Dependencies
+
+Both projects depend on:
+- **FastAPI Server**: http://localhost:8000 (managed/consumed by Django apps)
+- **Django 6.0+**: Web framework
+- **Bootstrap 5**: UI framework
+- **Requests**: HTTP client for API communication
    ```bash
    cd python/web-frameworks/django
    ```

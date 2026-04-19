@@ -86,7 +86,7 @@
                                                     </div>
                                                     <div class="card-footer">
                                                         <div class="btn-group w-100" role="group">
-                                                            <form method="post" class="d-inline" onsubmit="return handleToggleSubmit(this, '{{ todo.title|escapejs }}', {{ todo.completed|yesno:'true,false' }})">
+                                                            <form method="post" class="d-inline">
                                                                 {% csrf_token %}
                                                                 <input type="hidden" name="action" value="toggle_complete">
                                                                 <input type="hidden" name="todo_id" value="{{ todo.id }}">
@@ -98,6 +98,9 @@
                                                                     {% endif %}
                                                                 </button>
                                                             </form>
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal-{{ todo.id }}">
+                                                                <i class="fas fa-edit"></i> Edit
+                                                            </button>
                                                             <form method="post" class="d-inline" onsubmit="return confirmDelete('{{ todo.title }}')">
                                                                 {% csrf_token %}
                                                                 <input type="hidden" name="action" value="delete">
@@ -227,6 +230,9 @@
                                                                     <i class="fas fa-undo"></i> Mark Incomplete
                                                                 </button>
                                                             </form>
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal-{{ todo.id }}">
+                                                                <i class="fas fa-edit"></i> Edit
+                                                            </button>
                                                             <form method="post" class="d-inline" onsubmit="return confirmDelete('{{ todo.title }}')">
                                                                 {% csrf_token %}
                                                                 <input type="hidden" name="action" value="delete">
@@ -276,6 +282,58 @@
 </div>
 {% endif %}
 
+<!-- Edit Modals for All Todos -->
+{% if all_todos %}
+    {% for todo in all_todos %}
+        <div class="modal fade" id="editModal-{{ todo.id }}" tabindex="-1" aria-labelledby="editModalLabel-{{ todo.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel-{{ todo.id }}">
+                            <i class="fas fa-edit"></i> Edit Todo
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post">
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="edit">
+                            <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                            
+                            <div class="mb-3">
+                                <label for="editTitle-{{ todo.id }}" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="editTitle-{{ todo.id }}" name="title" value="{{ todo.title }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="editDescription-{{ todo.id }}" class="form-label">Description</label>
+                                <textarea class="form-control" id="editDescription-{{ todo.id }}" name="description" rows="3">{{ todo.description }}</textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="editCompleted-{{ todo.id }}" name="completed" {% if todo.completed %}checked{% endif %}>
+                                    <label class="form-check-label" for="editCompleted-{{ todo.id }}">
+                                        Mark as completed
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
 <!-- Hidden CSRF token for JavaScript -->
 {% csrf_token %}
 
@@ -284,13 +342,7 @@
 {% block extra_js %}
 <script>
     function confirmDelete(todoTitle) {
-        return confirm(`Are you sure you want to delete "${todoTitle}"? This action cannot be undone.`);
-    }
-
-    function handleToggleSubmit(form, todoTitle, isCompleted) {
-        const action = isCompleted ? 'mark as incomplete' : 'complete';
-        console.log(`Attempting to ${action} todo: ${todoTitle}`);
-        return true; // Allow form submission
+        return confirm(`Are you sure you want to delete \"${todoTitle}\"? This action cannot be undone.`);
     }
 
     // Auto-refresh todos every 30 seconds if server is running
@@ -302,27 +354,18 @@
         }, 30000);
     {% endif %}
 
-    // Add loading state to buttons
-    document.querySelectorAll('form button[type="submit"]').forEach(button => {
-        button.addEventListener('click', function() {
-            const originalText = this.innerHTML;
-            this.disabled = true;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-            
-            // Re-enable button after 5 seconds as fallback
-            setTimeout(() => {
-                this.disabled = false;
-                this.innerHTML = originalText;
-            }, 5000);
-        });
-    });
-
-    // Add debugging for form submissions
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const action = this.querySelector('input[name="action"]')?.value;
-            const todoId = this.querySelector('input[name="todo_id"]')?.value;
-            console.log(`Form submission: action=${action}, todoId=${todoId}`);
+    // Simple form submission logging (does not interfere with submission)
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Todo management page loaded - setting up form listeners');
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const action = this.querySelector('input[name=\"action\"]')?.value;
+                const todoId = this.querySelector('input[name=\"todo_id\"]')?.value;
+                console.log(`🚀 Form submitting: action=${action}, todoId=${todoId}`);
+                console.log('Form method:', this.method);
+                console.log('Form action:', this.action || 'current page');
+                // Let form submit naturally - no preventDefault!
+            });
         });
     });
 </script>

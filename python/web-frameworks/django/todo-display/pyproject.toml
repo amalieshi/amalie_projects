@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "todo-display"
+version = "1.0.0"
+description = "Clean, user-friendly Django web application for displaying and managing todos"
+readme = "README.md"
+authors = [
+    {name = "Amalie Shi", email = "amalie.shi.jhmi@gmail.com"},
+]
+keywords = ["django", "todo", "ui", "user-interface", "productivity"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Django",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License", 
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10", 
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Office/Business :: Scheduling",
+]
+
+requires-python = ">=3.9"
+dependencies = [
+    "Django>=6.0.0",
+    "requests>=2.31.0",
+    "django-cors-headers>=4.3.0",
+    "django-bootstrap5>=23.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-django", 
+    "black",
+    "flake8",
+]
+
+[project.urls]
+Homepage = "https://github.com/amalieshi/amalie_projects/tree/main/python/web-frameworks/django/todo-display"
+Repository = "https://github.com/amalieshi/amalie_projects"
+Documentation = "https://github.com/amalieshi/amalie_projects/blob/main/python/web-frameworks/django/todo-display/README.md"
+
+[tool.django]
+settings_module = "todo_display.settings"
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+
+[tool.isort]
+profile = "django"
+line_length = 100

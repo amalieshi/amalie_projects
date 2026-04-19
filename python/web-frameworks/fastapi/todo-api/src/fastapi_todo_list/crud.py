@@ -15,12 +15,18 @@ def get_todos(db: Session, completed: Optional[bool] = None) -> List[TodoItem]:
 
 def get_active_todos(db: Session) -> List[TodoItem]:
     """Get all active (incomplete) todos"""
-    return db.query(TodoItem).filter(TodoItem.completed == False).order_by(TodoItem.created_at.desc()).all()
+    return (db.query(TodoItem)
+            .filter(~TodoItem.completed)
+            .order_by(TodoItem.created_at.desc())
+            .all())
 
 
-def get_completed_todos(db: Session) -> List[TodoItem]:  
+def get_completed_todos(db: Session) -> List[TodoItem]:
     """Get all completed todos"""
-    return db.query(TodoItem).filter(TodoItem.completed == True).order_by(TodoItem.created_at.desc()).all()
+    return (db.query(TodoItem)
+            .filter(TodoItem.completed)
+            .order_by(TodoItem.created_at.desc())
+            .all())
 
 
 def get_todo(db: Session, todo_id: int) -> Optional[TodoItem]:

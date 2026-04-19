@@ -3,10 +3,10 @@ name: FastAPI Todo - CI/CD Pipeline
 on:
   push:
     paths:
-      - "python/web-frameworks/fastapi/**"
+      - "python/web-frameworks/fastapi/todo-api/**"
   pull_request:
     paths:
-      - "python/web-frameworks/fastapi/**"
+      - "python/web-frameworks/fastapi/todo-api/**"
   workflow_dispatch:
     inputs:
       force_publish:
@@ -14,9 +14,14 @@ on:
         required: false
         default: false
         type: boolean
+      run_tests:
+        description: "Run tests before publishing"
+        required: false
+        default: false
+        type: boolean
 
 env:
-  PACKAGE_DIR: python/web-frameworks/fastapi
+  PACKAGE_DIR: python/web-frameworks/fastapi/todo-api
 
 jobs:
   check-version:
@@ -66,12 +71,12 @@ jobs:
             echo "New version detected - ready for publishing"
           else
             echo "result=false" >> $GITHUB_OUTPUT
-            echo "⏭️ No version change detected"
+            echo "No version change detected"
           fi
 
   test:
     name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
-    if: needs.check-version.outputs.should-publish == 'true'
+    if: always() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.run_tests == 'true') || (github.event_name != 'workflow_dispatch' && needs.check-version.outputs.should-publish == 'true'))
     needs: [ check-version ]
     runs-on: ${{ matrix.os }}
     strategy:
@@ -88,6 +93,13 @@ jobs:
             python-version: "3.9"
 
     steps:
+      - name: Debug workflow inputs
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Run tests input: '${{ github.event.inputs.run_tests }}'"
+          echo "Should publish: ${{ needs.check-version.outputs.should-publish }}"
+          echo "Force publish: '${{ github.event.inputs.force_publish }}'"
+        
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -97,8 +109,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          echo "Current directory: $(pwd)"
+          echo "PACKAGE_DIR: ${{ env.PACKAGE_DIR }}"
           cd ${{ env.PACKAGE_DIR }}
+          echo "Now in directory: $(pwd)"
+          echo "Looking for pyproject.toml..."
+          python -c "import os; print('Found pyproject.toml' if os.path.exists('pyproject.toml') else 'pyproject.toml not found!'); exit(0 if os.path.exists('pyproject.toml') else 1)"
+          python -m pip install --upgrade pip
           pip install -e ".[test]"
 
       - name: Run tests with pytest
@@ -305,17 +322,19 @@ jobs:
     steps:
       - name: Workflow Skipped Summary
         run: |
-          echo "⏭️ **FastAPI Todo Workflow Skipped**"
+          echo "**FastAPI Todo Workflow Skipped**"
           echo ""
           echo "**Reason**: Version ${{ needs.check-version.outputs.version }} already exists"
           echo "**Action**: No tests, builds, or publishing needed"
           echo "**Benefit**: Saved CI resources and execution time"
           echo ""
           echo "**To trigger full workflow**:"
-          echo "   1. Bump version in python/web-frameworks/fastapi/pyproject.toml"
+          echo "   1. Bump version in python/web-frameworks/fastapi/todo-api/pyproject.toml"
           echo "   2. Current: $(echo ${{ needs.check-version.outputs.version }} | cut -d'v' -f2)"
           echo "   3. Suggested: $(echo ${{ needs.check-version.outputs.version }} | cut -d'v' -f2 | awk -F. '{print $1\".\"$2\".\"$3+1}')"
-          echo "   4. Or use 'Actions' → 'Run workflow' → 'Force publish' for testing"
+          echo "   4. Or use 'Actions' → 'Run workflow' with options:"
+          echo "      - 'Force publish': bypasses version check"
+          echo "      - 'Run tests': controls whether to run tests (default: true)"
 
   workflow-summary:
     needs:
@@ -336,10 +355,24 @@ jobs:
           echo ""
 
           # Test Results
-          if [[ "${{ needs.test.result }}" == "success" ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.run_tests }}" == "false" ]]; then
+            echo "**Tests**: Skipped (disabled via workflow input)"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.run_tests }}" == "true" ]]; then
+            if [[ "${{ needs.test.result }}" == "success" ]]; then
+              echo "**Tests**: All tests passed across multiple Python versions (run via manual override)"
+            elif [[ "${{ needs.test.result }}" == "failure" ]]; then
+              echo "**Tests**: Some tests failed (run via manual override)"
+            else
+              echo "**Tests**: Run via manual override, status: ${{ needs.test.result }}"
+            fi
+          elif [[ "${{ needs.test.result }}" == "success" ]]; then
             echo "**Tests**: All tests passed across multiple Python versions"
-          else
+          elif [[ "${{ needs.test.result }}" == "failure" ]]; then
             echo "**Tests**: Some tests failed"
+          elif [[ "${{ needs.test.result }}" == "skipped" ]]; then
+            echo "**Tests**: Skipped (version unchanged)"
+          else
+            echo "**Tests**: Not run or status unknown"
           fi
 
           # Publishing Results
@@ -357,7 +390,7 @@ jobs:
 
           echo ""
           echo "**Job Status Summary**:"
-          echo "   Tests: ${{ needs.test.result }}"
+          echo "   Tests: ${{ needs.test.result || 'not-run' }}"
           echo "   Version Check: ${{ needs.check-version.result }}"
           echo "   Build: ${{ needs.build.result }}"
           echo "   Create Tag: ${{ needs.create-tag.result }}"

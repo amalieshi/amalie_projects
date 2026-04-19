@@ -3,10 +3,10 @@ name: FastAPI Todo - CI/CD Pipeline
 on:
   push:
     paths:
-      - "python/web-frameworks/fastapi/**"
+      - "python/web-frameworks/fastapi/todo-api/**"
   pull_request:
     paths:
-      - "python/web-frameworks/fastapi/**"
+      - "python/web-frameworks/fastapi/todo-api/**"
   workflow_dispatch:
     inputs:
       force_publish:
@@ -16,7 +16,7 @@ on:
         type: boolean
 
 env:
-  PACKAGE_DIR: python/web-frameworks/fastapi
+  PACKAGE_DIR: python/web-frameworks/fastapi/todo-api
 
 jobs:
   check-version:
@@ -312,7 +312,7 @@ jobs:
           echo "**Benefit**: Saved CI resources and execution time"
           echo ""
           echo "**To trigger full workflow**:"
-          echo "   1. Bump version in python/web-frameworks/fastapi/pyproject.toml"
+          echo "   1. Bump version in python/web-frameworks/fastapi/todo-api/pyproject.toml"
           echo "   2. Current: $(echo ${{ needs.check-version.outputs.version }} | cut -d'v' -f2)"
           echo "   3. Suggested: $(echo ${{ needs.check-version.outputs.version }} | cut -d'v' -f2 | awk -F. '{print $1\".\"$2\".\"$3+1}')"
           echo "   4. Or use 'Actions' → 'Run workflow' → 'Force publish' for testing"

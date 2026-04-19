@@ -12,9 +12,10 @@ class TodoListView(View):
         """Display todos with optional filtering"""
         client = TodoAPIClient()
         
-        # Get filter parameter
+        # Get parameters
         filter_type = request.GET.get('filter', 'all')
         search_query = request.GET.get('search', '').strip()
+        view_type = request.GET.get('view', 'cards')  # 'cards' or 'list'
         
         # Check server connectivity
         server_online = client.check_server_status()
@@ -25,6 +26,7 @@ class TodoListView(View):
                 'fastapi_url': settings.FASTAPI_SERVER_URL,
                 'filter_type': filter_type,
                 'search_query': search_query,
+                'view_type': view_type,
             }
             return render(request, 'display/todo_list.html', context)
         
@@ -75,6 +77,7 @@ class TodoListView(View):
             'fastapi_url': settings.FASTAPI_SERVER_URL,
             'filter_type': filter_type,
             'search_query': search_query,
+            'view_type': view_type,
             'all_count': all_count,
             'active_count': active_count,
             'completed_count': completed_count,
@@ -83,7 +86,7 @@ class TodoListView(View):
         return render(request, 'display/todo_list.html', context)
     
     def post(self, request):
-        """Handle todo completion toggle"""
+        """Handle todo completion toggle and editing"""
         action = request.POST.get('action')
         todo_id = request.POST.get('todo_id')
         
@@ -97,13 +100,30 @@ class TodoListView(View):
             else:
                 messages.error(request, f"Error updating todo: {result['error']}")
         
-        # Preserve current filter and search in redirect
+        elif action == 'update_todo' and todo_id:
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+            
+            if not title:
+                messages.error(request, "Title is required")
+            else:
+                client = TodoAPIClient()
+                result = client.update_todo(todo_id, title, description)
+                
+                if result['success']:
+                    messages.success(request, "Todo updated successfully!")
+                else:
+                    messages.error(request, f"Error updating todo: {result['error']}")
+        
+        # Preserve current parameters in redirect
         redirect_url = '.'
         params = []
         if request.POST.get('current_filter'):
             params.append(f"filter={request.POST.get('current_filter')}")
         if request.POST.get('current_search'):
             params.append(f"search={request.POST.get('current_search')}")
+        if request.POST.get('current_view'):
+            params.append(f"view={request.POST.get('current_view')}")
         
         if params:
             redirect_url += '?' + '&'.join(params)

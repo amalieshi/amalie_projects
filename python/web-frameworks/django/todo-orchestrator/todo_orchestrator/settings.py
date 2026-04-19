@@ -131,7 +131,7 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all origins in debug mode
 
 # Custom settings for FastAPI integration
 FASTAPI_SERVER_URL = 'http://localhost:8000'
-FASTAPI_PROJECT_PATH = '../fastapi'  # Relative path to FastAPI project from web-frameworks
+FASTAPI_PROJECT_PATH = '../fastapi/todo-api'  # Relative path to FastAPI project from web-frameworks
 
 # Bootstrap settings
 BOOTSTRAP5 = {

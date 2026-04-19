@@ -1,52 +1,52 @@
 # Todo API Orchestrator
 
-## 🔧 Development & Testing Tool
+## Development and Testing Tool
 
-A comprehensive Django-based testing and orchestration platform designed specifically for **developers** working with the FastAPI Todo List API. This tool provides advanced debugging, testing, and server management capabilities.
+A comprehensive Django-based testing and orchestration platform designed for developers working with the FastAPI Todo List API. This tool provides advanced debugging, testing, and server management capabilities.
 
-## 🎯 Purpose
+## Purpose
 
 **Target Audience**: Developers, QA Engineers, API Testers  
 **Use Case**: Development, testing, debugging, and API validation
 
-## 🚀 Key Features
+## Key Features
 
 ### Server Management
-- **One-click FastAPI server control** (start/stop)
-- **Real-time server status monitoring**
-- **Process management** with PID tracking
-- **Automatic server health checks**
+- One-click FastAPI server control (start/stop)
+- Real-time server status monitoring
+- Process management with PID tracking
+- Automatic server health checks
 
 ### Advanced API Testing
-- **Complete API testing suite** for all endpoints
-- **Interactive forms** for crafting custom requests
-- **Raw JSON request builder** for advanced testing
-- **Response inspection** with formatted display
-- **Request/response logging** with detailed history
+- Complete API testing suite for all endpoints
+- Interactive forms for crafting custom requests
+- Raw JSON request builder for advanced testing
+- Response inspection with formatted display
+- Request/response logging with detailed history
 
 ### Todo Management with Debugging
-- **Full CRUD operations** with comprehensive debugging
-- **Real-time todo status updates**
-- **Edit functionality** with modal interfaces
-- **Completion tracking** with detailed logging
-- **Error handling** and troubleshooting tools
+- Full CRUD operations with comprehensive debugging
+- Real-time todo status updates
+- Edit functionality with modal interfaces
+- Completion tracking with detailed logging
+- Error handling and troubleshooting tools
 
 ### Developer Dashboard
-- **API request logs** with execution times
-- **Server performance metrics**
-- **Swagger UI integration** for API documentation
-- **Tabbed interface** for organized workflow
+- API request logs with execution times
+- Server performance metrics
+- Swagger UI integration for API documentation
+- Tabbed interface for organized workflow
 
-## 🛠️ Technical Features
+## Technical Features
 
-- **Bootstrap 5** responsive interface
-- **Real-time status updates** every 30 seconds
-- **Comprehensive error handling** with detailed messages
-- **Debug logging** throughout the application stack
-- **Request history** with collapsible data views
-- **CSRF protection** on all forms
+- Bootstrap 5 responsive interface
+- Real-time status updates every 30 seconds
+- Comprehensive error handling with detailed messages
+- Debug logging throughout the application stack
+- Request history with collapsible data views
+- CSRF protection on all forms
 
-## 🏃‍♂️ Getting Started
+## Getting Started
 
 ### Prerequisites
 - Python 3.8+

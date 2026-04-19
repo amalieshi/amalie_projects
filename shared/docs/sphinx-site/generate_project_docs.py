@@ -63,6 +63,38 @@ def find_project_readmes(root_path: Path) -> list[dict]:
                                 .replace(" ", "_"),
                             }
                         )
+                    
+                    # Special handling for multi-project directories (like django)
+                    # Look for nested projects within directories that have their own README
+                    if item.name.lower() in ['django', 'fastapi', 'react', 'vue', 'mlflow']:  # Add more as needed
+                        for nested_item in item.iterdir():
+                            if nested_item.is_dir():
+                                nested_readme_path = nested_item / "README.md"
+                                if nested_readme_path.exists():
+                                    # Calculate relative path for nested project
+                                    nested_rel_path = os.path.relpath(
+                                        nested_readme_path,
+                                        root_path / "shared/docs/sphinx-site/source/projects",
+                                    )
+                                    nested_rel_path = nested_rel_path.replace("\\", "/")
+                                    
+                                    readmes.append(
+                                        {
+                                            "name": f"{item.name}-{nested_item.name}",
+                                            "parent_category": item.name,
+                                            "category": f"{project_dir.replace('/', '_')}_{item.name.lower()}",
+                                            "path": nested_rel_path,
+                                            "full_path": nested_readme_path,
+                                            "title": create_title_from_readme(nested_readme_path),
+                                            "description": extract_project_description(nested_readme_path),
+                                            "technologies": extract_project_technologies(
+                                                nested_readme_path
+                                            ),
+                                            "slug": f"{item.name.lower()}_{nested_item.name.lower()}"
+                                            .replace("-", "_")
+                                            .replace(" ", "_"),
+                                        }
+                                    )
 
     return readmes
 
@@ -150,11 +182,19 @@ def generate_project_rst(readmes: list[dict], output_dir: Path):
 
     # Group readmes by category
     categories = {}
+    all_readmes_by_category = {}  # Include nested projects for category pages
+    
     for readme in readmes:
         cat = readme["category"]
         if cat not in categories:
             categories[cat] = []
         categories[cat].append(readme)
+        
+        # Also group by main category for nested hierarchies
+        main_cat = cat.split('_')[0] + '_' + cat.split('_')[1] if '_' in cat else cat
+        if main_cat not in all_readmes_by_category:
+            all_readmes_by_category[main_cat] = []
+        all_readmes_by_category[main_cat].append(readme)
 
     # Create individual project pages
     for readme in readmes:
@@ -190,6 +230,10 @@ def generate_project_rst(readmes: list[dict], output_dir: Path):
 
     # Generate category overview pages with project cards
     for category, projects in categories.items():
+        # Skip nested categories - they'll be included in main category pages
+        if any('parent_category' in p for p in projects):
+            continue
+            
         cat_name = category.replace("_", " ").title()
         cat_file = output_dir / f"{category}.rst"
 
@@ -207,15 +251,42 @@ This section showcases all {cat_name.lower()} projects with their documentation 
 
 """
 
-        # Generate project cards
+        # Check if this category has nested projects
+        nested_projects = []
+        main_category_key = category
+        for readme in readmes:
+            if 'parent_category' in readme and readme['category'].startswith(category + '_'):
+                nested_projects.append(readme)
+
+        # Add toctree for nested projects if they exist
+        if nested_projects:
+            rst_content += f"""
+
+**Projects in this Category**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+   :caption: {cat_name} Projects
+   :hidden:
+
+"""
+            for project in nested_projects:
+                nested_slug = f"{project['category']}_{project['slug']}"
+                rst_content += f"   {nested_slug}\n"
+
+        # Generate project cards (include both main projects and nested ones)
+        all_projects = projects + nested_projects
+        
         rst_content += f"""
+
 .. grid:: 1 2 2 2
    :gutter: 3
    :margin: 2
 
 """
 
-        for project in projects:
+        for project in all_projects:
             project_slug = f"{category}_{project['slug']}"
             tech_tags = ""
             if project["technologies"]:
@@ -329,31 +400,53 @@ def update_projects_index(
     with open(projects_index_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Generate toctree for auto-discovered projects
+    # Group readmes by main category (not sub-categories)  
+    main_categories = {}
+    individual_projects = []
+    
+    for readme in readmes:
+        category = readme['category']
+        
+        # Check if this is a nested project (has parent_category)
+        if 'parent_category' in readme:
+            # This is a nested project - don't show it at top level
+            continue
+        else:
+            # This is either a main category or an individual project
+            main_category = category.split('_')[0] + '_' + category.split('_')[1]  # e.g., "python_web-frameworks"
+            if main_category not in main_categories:
+                main_categories[main_category] = []
+            
+            # Check if this is a main category (like django folder) or individual project
+            if readme['name'].lower() in ['django', 'fastapi', 'react', 'vue']:
+                main_categories[main_category].append(readme)
+            else:
+                individual_projects.append(readme)
+
+    # Generate hierarchical toctree
     toctree_content = """
 
 **Auto-Discovered Projects**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Project Categories
+   :maxdepth: 2
+   :caption: Technologies & Projects
    :hidden:
    
 """
 
-    # Add category pages
-    for category in sorted(categories):
-        toctree_content += f"   {category}\n"
+    # Add main category pages (these will contain nested projects)
+    for main_category in sorted(main_categories.keys()):
+        toctree_content += f"   {main_category}\n"
 
-    # Add individual project pages
-    toctree_content += "\n.. toctree::\n   :maxdepth: 1\n   :caption: Individual Projects\n   :hidden:\n\n"
+    # Add any standalone individual projects
+    if individual_projects:
+        for project in individual_projects:
+            project_slug = f"{project['category']}_{project['slug']}"
+            toctree_content += f"   {project_slug}\n"
 
-    for readme in readmes:
-        project_slug = f"{readme['category']}_{readme['slug']}"
-        toctree_content += f"   {project_slug}\n"
-
-    # Add visual category grid
+    # Add visual category grid (only main categories)
     toctree_content += f"""
 
 .. grid:: 1 2 2 3

@@ -10,31 +10,17 @@ def get_todos(db: Session, completed: Optional[bool] = None) -> List[TodoItem]:
     query = db.query(TodoItem)
     if completed is not None:
         query = query.filter(TodoItem.completed == completed)
-    result = query.order_by(TodoItem.created_at.desc()).all()
-    
-    # Debug logging
-    if completed is True:
-        print(f"DEBUG CRUD: get_todos(completed=True) returned {len(result)} items")
-    elif completed is False:
-        print(f"DEBUG CRUD: get_todos(completed=False) returned {len(result)} items")
-    else:
-        print(f"DEBUG CRUD: get_todos(all) returned {len(result)} items")
-    
-    return result
+    return query.order_by(TodoItem.created_at.desc()).all()
 
 
 def get_active_todos(db: Session) -> List[TodoItem]:
     """Get all active (incomplete) todos"""
-    result = db.query(TodoItem).filter(TodoItem.completed == False).order_by(TodoItem.created_at.desc()).all()
-    print(f"DEBUG CRUD: get_active_todos() returned {len(result)} items")
-    return result
+    return db.query(TodoItem).filter(TodoItem.completed == False).order_by(TodoItem.created_at.desc()).all()
 
 
 def get_completed_todos(db: Session) -> List[TodoItem]:  
     """Get all completed todos"""
-    result = db.query(TodoItem).filter(TodoItem.completed == True).order_by(TodoItem.created_at.desc()).all()
-    print(f"DEBUG CRUD: get_completed_todos() returned {len(result)} items")
-    return result
+    return db.query(TodoItem).filter(TodoItem.completed == True).order_by(TodoItem.created_at.desc()).all()
 
 
 def get_todo(db: Session, todo_id: int) -> Optional[TodoItem]:
@@ -63,20 +49,16 @@ def update_todo(
     """Update an existing todo item"""
     db_todo = db.query(TodoItem).filter(TodoItem.id == todo_id).first()
     if not db_todo:
-        print(f"DEBUG CRUD: Todo {todo_id} not found for update")
         return None
 
     update_data = todo_update.dict(exclude_unset=True)
-    print(f"DEBUG CRUD: Updating todo {todo_id} with data: {update_data}")
 
     # If marking as completed, set completed_at timestamp
     if "completed" in update_data:
         if update_data["completed"]:
             update_data["completed_at"] = datetime.utcnow()
-            print(f"DEBUG CRUD: Marking todo {todo_id} as completed")
         else:
             update_data["completed_at"] = None
-            print(f"DEBUG CRUD: Marking todo {todo_id} as incomplete")
 
     update_data["updated_at"] = datetime.utcnow()
 
@@ -85,8 +67,6 @@ def update_todo(
 
     db.commit()
     db.refresh(db_todo)
-    
-    print(f"DEBUG CRUD: Todo {todo_id} updated successfully, completed={db_todo.completed}")
     return db_todo
 
 

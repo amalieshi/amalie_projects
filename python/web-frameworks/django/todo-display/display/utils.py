@@ -57,14 +57,17 @@ class TodoAPIClient:
             }
     
     def get_completed_todos(self):
-        """Get completed todos"""
+        """Get completed todos, sorted by completion date (most recent first)"""
         try:
             response = requests.get(f"{self.base_url}/todos/completed", timeout=self.timeout)
             if response.status_code == 200:
+                todos = response.json()
+                # Sort by completion date (most recent first)
+                todos.sort(key=lambda x: x.get('completed_at', ''), reverse=True)
                 return {
                     'success': True,
-                    'data': response.json(),
-                    'count': len(response.json())
+                    'data': todos,
+                    'count': len(todos)
                 }
             else:
                 return {
@@ -113,6 +116,52 @@ class TodoAPIClient:
                 'error': f'Connection error: {str(e)}'
             }
     
+    def update_todo(self, todo_id, title, description):
+        """Update todo title and description"""
+        try:
+            response = requests.put(
+                f"{self.base_url}/todos/{todo_id}",
+                json={'title': title, 'description': description},
+                timeout=self.timeout
+            )
+            
+            if response.status_code == 200:
+                return {
+                    'success': True,
+                    'data': response.json()
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': f'Update failed with status {response.status_code}'
+                }
+                
+        except requests.exceptions.RequestException as e:
+            return {
+                'success': False,
+                'error': f'Connection error: {str(e)}'
+            }
+    
+    def get_todo(self, todo_id):
+        """Get a specific todo by ID"""
+        try:
+            response = requests.get(f"{self.base_url}/todos/{todo_id}", timeout=self.timeout)
+            if response.status_code == 200:
+                return {
+                    'success': True,
+                    'data': response.json()
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': f'Todo not found (status {response.status_code})'
+                }
+        except requests.exceptions.RequestException as e:
+            return {
+                'success': False,
+                'error': f'Connection error: {str(e)}'
+            }
+
     def check_server_status(self):
         """Check if FastAPI server is accessible"""
         try:

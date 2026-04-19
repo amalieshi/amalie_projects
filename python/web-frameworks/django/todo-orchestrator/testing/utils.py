@@ -21,10 +21,10 @@ class FastAPIServerManager:
         
     def _get_fastapi_path(self):
         """Get the absolute path to the FastAPI project"""
-        # Path: utils.py -> testing -> todo_orchestrator -> src -> django -> web-frameworks -> fastapi
+        # Path: utils.py -> testing -> todo_orchestrator -> src -> django -> web-frameworks -> fastapi -> todo-api
         django_project_dir = Path(__file__).parent.parent.parent.parent  # django folder
         web_frameworks_dir = django_project_dir.parent  # web-frameworks folder
-        fastapi_dir = web_frameworks_dir / "fastapi"  # fastapi folder
+        fastapi_dir = web_frameworks_dir / "fastapi" / "todo-api"  # fastapi/todo-api folder
         return fastapi_dir
         
     def is_server_running(self):

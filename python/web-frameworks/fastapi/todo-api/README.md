@@ -1,65 +1,81 @@
-# FastAPI Web Applications
+# Todo API
 
-This directory contains FastAPI web applications showcasing modern Python web API development, each with its own `pyproject.toml` for dependency management.
+A robust FastAPI-based todo list API with comprehensive CRUD operations, automatic timestamp tracking, and complete data validation.
+
+## Features
+
+- Add todo items with title and optional description
+- Mark items as completed with automatic completion timestamps
+- Remove items from the list
+- View active todos with creation and modification dates
+- View completed todos with completion dates
+- Update existing todos (title, description, status)
 
 ## Project Structure
 
 ```
-fastapi/
-├── todo-api/                   # Todo List API service
-│   ├── pyproject.toml         # Dependencies & project config
-│   ├── src/fastapi_todo_list/ # Main FastAPI application
-│   ├── tests/                 # Test suite
-│   ├── build_package.py       # Package building utilities
-│   └── README.md              # Project documentation
-├── LICENSE                     # MIT License
-└── README.md                   # This file
+todo-api/
+├── pyproject.toml                    # Project metadata and dependencies
+├── README.md                         # Project documentation
+├── test_api.py                       # API testing script
+├── tests/                            # Test suite
+└── src/
+    └── fastapi_todo_list/
+        ├── __init__.py              # Package initialization
+        ├── main.py                  # FastAPI application and API endpoints
+        ├── database.py              # Database setup and models
+        ├── schemas.py               # Pydantic models for request/response
+        ├── crud.py                  # Database operations
+        └── config.py                # Configuration settings
 ```
 
-## Projects
-
-### 1. todo-api (Main API Service)
-**Purpose**: A robust FastAPI-based todo list API with full CRUD operations
-- FastAPI with automatic OpenAPI documentation
-- SQLAlchemy ORM with SQLite database
-- Pydantic models for data validation
-- Comprehensive CRUD operations with timestamps
-- Full test coverage with pytest
-- Automatic completion timestamp tracking
-
-## Technologies Used
+## Technology Stack
 
 - **FastAPI**: Modern, fast web framework for building APIs
 - **SQLAlchemy**: SQL toolkit and ORM
-- **Pydantic**: Data validation using Python type annotations
+- **Pydantic**: Data validation using Python type annotations  
 - **SQLite**: Lightweight database for development
 - **Uvicorn**: ASGI web server implementation
 - **Pytest**: Testing framework
 
-## Quick Start
+## Installation and Setup
 
-Each project can be run independently with its own dependencies:
+1. Install the package in development mode:
+   ```bash
+   pip install -e .
+   ```
 
+2. Run the application:
+   ```bash
+   uvicorn src.fastapi_todo_list.main:app --reload
+   ```
+
+3. Access the API documentation:
+   - Interactive docs: http://localhost:8000/docs
+   - ReDoc: http://localhost:8000/redoc
+
+## API Endpoints
+
+- `GET /` - Welcome message with endpoint overview
+- `GET /todos` - Get all active todos
+- `GET /todos/completed` - Get completed todos  
+- `GET /todos/all` - Get all todos
+- `GET /todos/{id}` - Get specific todo
+- `POST /todos` - Create new todo
+- `PUT /todos/{id}` - Update existing todo
+- `DELETE /todos/{id}` - Delete todo
+
+## Testing
+
+Run the test suite:
 ```bash
-cd todo-api
-pip install -e .
-uvicorn src.fastapi_todo_list.main:app --reload
+python -m pytest tests/
 ```
 
-Visit `http://localhost:8000/docs` for interactive API documentation.
-
-## Development Notes
-
-- All projects use modern `pyproject.toml` configuration
-- Code follows FastAPI best practices and patterns
-- Comprehensive testing with pytest
-- Automatic API documentation generation
-- Type hints throughout for better IDE support
-
-## Related Projects
-
-- **Django Applications**: See `../django/` for Django-based web applications that consume these APIs
-- **Testing Tools**: The Django todo-orchestrator provides a web-based testing interface for these FastAPI services
+Run API tests:
+```bash
+python test_api.py
+```
 
 2. **Access the API:**
    - API: http://localhost:8000

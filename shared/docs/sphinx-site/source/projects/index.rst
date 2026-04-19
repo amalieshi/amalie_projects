@@ -49,18 +49,11 @@ The repository is organized by technology stacks to facilitate learning and easy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Project Categories
+   :maxdepth: 2
+   :caption: Technologies & Projects
    :hidden:
    
    python_web-frameworks
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Individual Projects
-   :hidden:
-
-   python_web-frameworks_fastapi
 
 
 .. grid:: 1 2 2 3
@@ -69,6 +62,30 @@ The repository is organized by technology stacks to facilitate learning and easy
 
    .. grid-item-card:: 🐍 Python Web Frameworks
       :link: python_web-frameworks
+      :link-type: doc
+      :text-align: center
+      :class-card: category-card
+
+      Explore projects and documentation
+      
+      +++
+      
+      Explore →
+
+   .. grid-item-card:: Python Web-Frameworks Django
+      :link: python_web-frameworks_django
+      :link-type: doc
+      :text-align: center
+      :class-card: category-card
+
+      Explore projects and documentation
+      
+      +++
+      
+      Explore →
+
+   .. grid-item-card:: Python Web-Frameworks Fastapi
+      :link: python_web-frameworks_fastapi
       :link-type: doc
       :text-align: center
       :class-card: category-card

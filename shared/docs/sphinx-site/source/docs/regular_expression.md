@@ -1,4 +1,4 @@
-# Using Regular Expressions to Parse PDF Test Data into JSON (with Data Validation)
+# Parsing PDF Test Data with Regular Expressions
 
 Working with test reports stored in PDF files can be frustrating — especially when you need to extract structured data for automated processing. In this guide, we'll walk through how to use **Python's regular expressions (`re` module)** to:
 
@@ -109,7 +109,7 @@ for result in results:
 
 ---
 
-### 🧩 Grouping and Capturing
+### Grouping and Capturing
 
 | Pattern         | Description                  | Example                   |
 | --------------- | ---------------------------- | ------------------------- |
@@ -120,7 +120,7 @@ for result in results:
 
 ---
 
-### ⚙️ Common Regex Functions in Python
+### Common Regex Functions in Python
 
 | Function       | Purpose                           |
 | -------------- | --------------------------------- |
@@ -134,7 +134,7 @@ for result in results:
 
 ---
 
-### 🚩 Regex Flags
+### Regex Flags
 
 | Flag            | Description                               |
 | --------------- | ----------------------------------------- |
@@ -145,7 +145,7 @@ for result in results:
 
 ---
 
-## 💡 Tips for Readable Regex
+## Tips for Readable Regex
 
 * **Use `re.compile()`** for clarity and reuse.
 * **Label parts** of your regex with `(?P<name>...)` to make results self-descriptive.
@@ -159,7 +159,7 @@ pattern = re.compile(escaped)
 
 ---
 
-## ✅ Conclusion
+## Conclusion
 
 By combining PDF parsing, regex with named groups, and JSON Schema validation, you can automate test data extraction and verification cleanly and reliably.
 

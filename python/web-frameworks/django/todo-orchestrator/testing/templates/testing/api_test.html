@@ -1,0 +1,390 @@
+{% extends 'testing/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}API Testing - Todo API Orchestrator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">🧪 API Testing Interface</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Test the FastAPI Todo List API endpoints. Make sure the server is running before testing.
+                </p>
+                
+                <!-- Navigation tabs -->
+                <ul class="nav nav-tabs" id="testingTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="create-tab" data-bs-toggle="tab" data-bs-target="#create-panel" type="button">
+                            <i class="fas fa-plus"></i> Create Todo
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="retrieve-tab" data-bs-toggle="tab" data-bs-target="#retrieve-panel" type="button">
+                            <i class="fas fa-search"></i> Retrieve Todos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="update-tab" data-bs-toggle="tab" data-bs-target="#update-panel" type="button">
+                            <i class="fas fa-edit"></i> Update Todo
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="delete-tab" data-bs-toggle="tab" data-bs-target="#delete-panel" type="button">
+                            <i class="fas fa-trash"></i> Delete Todo
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="raw-tab" data-bs-toggle="tab" data-bs-target="#raw-panel" type="button">
+                            <i class="fas fa-code"></i> Raw Request
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3" id="testingTabsContent">
+                    <!-- Create Todo Tab -->
+                    <div class="tab-pane fade show active" id="create-panel" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Create New Todo</h5>
+                                <small class="text-muted">POST /todos</small>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="{% url 'create_todo' %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="{{ create_form.title.id_for_label }}" class="form-label">Title *</label>
+                                        {{ create_form.title }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="{{ create_form.description.id_for_label }}" class="form-label">Description</label>
+                                        {{ create_form.description }}
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> Create Todo
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Retrieve Todos Tab -->
+                    <div class="tab-pane fade" id="retrieve-panel" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Bulk Retrieve</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" action="{% url 'retrieve_todo' %}">
+                                            {% csrf_token %}
+                                            <div class="d-grid gap-2">
+                                                <button type="submit" name="action" value="all_todos" class="btn btn-outline-primary">
+                                                    <i class="fas fa-list"></i> GET /todos/all - All Todos
+                                                </button>
+                                                <button type="submit" name="action" value="active" class="btn btn-outline-success">
+                                                    <i class="fas fa-clock"></i> GET /todos - Active Todos
+                                                </button>
+                                                <button type="submit" name="action" value="completed" class="btn btn-outline-info">
+                                                    <i class="fas fa-check"></i> GET /todos/completed - Completed Todos
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Specific Todo</h5>
+                                        <small class="text-muted">GET /todos/{id}</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" action="{% url 'retrieve_todo' %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="specific">
+                                            <div class="mb-3">
+                                                <label for="{{ retrieve_form.todo_id.id_for_label }}" class="form-label">Todo ID</label>
+                                                {{ retrieve_form.todo_id }}
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-search"></i> Get Todo
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Update Todo Tab -->
+                    <div class="tab-pane fade" id="update-panel" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Update Todo</h5>
+                                <small class="text-muted">PUT /todos/{id}</small>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="{% url 'update_todo' %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="{{ update_form.todo_id.id_for_label }}" class="form-label">Todo ID *</label>
+                                        {{ update_form.todo_id }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="{{ update_form.title.id_for_label }}" class="form-label">New Title</label>
+                                        {{ update_form.title }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="{{ update_form.description.id_for_label }}" class="form-label">New Description</label>
+                                        {{ update_form.description }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="{{ update_form.completed.id_for_label }}" class="form-label">Completion Status</label>
+                                        {{ update_form.completed }}
+                                    </div>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-edit"></i> Update Todo
+                                    </button>
+                                </form>
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle"></i>
+                                        Leave fields empty to keep current values. At least one field must be provided.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete Todo Tab -->
+                    <div class="tab-pane fade" id="delete-panel" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Delete Todo</h5>
+                                <small class="text-muted">DELETE /todos/{id}</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Warning:</strong> This action cannot be undone!
+                                </div>
+                                <form method="post" action="{% url 'delete_todo' %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="{{ delete_form.todo_id.id_for_label }}" class="form-label">Todo ID *</label>
+                                        {{ delete_form.todo_id }}
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        {{ delete_form.confirm_delete }}
+                                        <label class="form-check-label" for="{{ delete_form.confirm_delete.id_for_label }}">
+                                            {{ delete_form.confirm_delete.label }}
+                                        </label>
+                                    </div>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash"></i> Delete Todo
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Raw Request Tab -->
+                    <div class="tab-pane fade" id="raw-panel" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Raw API Request</h5>
+                                <small class="text-muted">Make custom requests to any endpoint</small>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="{% url 'raw_api_request' %}">
+                                    {% csrf_token %}
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label for="{{ raw_form.method.id_for_label }}" class="form-label">Method *</label>
+                                                {{ raw_form.method }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-9">
+                                            <div class="mb-3">
+                                                <label for="{{ raw_form.endpoint.id_for_label }}" class="form-label">Endpoint *</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">{{ fastapi_url }}</span>
+                                                    {{ raw_form.endpoint }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="{{ raw_form.json_payload.id_for_label }}" class="form-label">JSON Payload</label>
+                                        {{ raw_form.json_payload }}
+                                        <div class="form-text">
+                                            Only needed for POST and PUT requests. Must be valid JSON.
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i> Send Request
+                                    </button>
+                                </form>
+                                
+                                <div class="mt-3">
+                                    <h6>Example Payloads:</h6>
+                                    <div class="accordion" id="examplesAccordion">
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#createExample">
+                                                    Create Todo
+                                                </button>
+                                            </h2>
+                                            <div id="createExample" class="accordion-collapse collapse" data-bs-parent="#examplesAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="code-block">{"title": "Buy groceries", "description": "Milk, bread, and eggs"}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#updateExample">
+                                                    Update Todo
+                                                </button>
+                                            </h2>
+                                            <div id="updateExample" class="accordion-collapse collapse" data-bs-parent="#examplesAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="code-block">{"title": "Updated title", "completed": true}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test History -->
+{% if recent_tests %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Test History</h5>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearHistory()">
+                    <i class="fas fa-trash"></i> Clear History
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Status</th>
+                                <th>Duration</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in recent_tests %}
+                            <tr class="{% if test.success %}test-success{% else %}test-failure{% endif %}">
+                                <td>{{ test.timestamp|date:"M d, H:i:s" }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ test.method }}</span>
+                                </td>
+                                <td><code>{{ test.endpoint }}</code></td>
+                                <td>
+                                    {% if test.success %}
+                                        <span class="badge bg-success">{{ test.status_code }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ test.status_code }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="execution-time">{{ test.execution_time|floatformat:3 }}s</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#details-{{ test.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="details-{{ test.id }}">
+                                <td colspan="6">
+                                    <div class="row">
+                                        {% if test.request_data %}
+                                        <div class="col-md-6">
+                                            <h6>Request Data:</h6>
+                                            <div class="code-block">{{ test.get_formatted_request_data }}</div>
+                                        </div>
+                                        {% endif %}
+                                        {% if test.response_data %}
+                                        <div class="col-md-6">
+                                            <h6>Response Data:</h6>
+                                            <div class="code-block">{{ test.get_formatted_response_data }}</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Hidden CSRF token for JavaScript -->
+{% csrf_token %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function clearHistory() {
+        if (confirm('Are you sure you want to clear all test history?')) {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch('{% url "clear_test_history" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error clearing history:', error);
+                alert('Error clearing history');
+            });
+        }
+    }
+
+    // Auto-refresh test history every 30 seconds
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+    }, 30000);
+</script>
+{% endblock %}

@@ -105,14 +105,14 @@ jobs:
             });
 
             const botComment = comments.find(comment => 
-              comment.user.type === 'Bot' && comment.body.includes('📚 Documentation Preview')
+              comment.user.type === 'Bot' && comment.body.includes('Documentation Preview')
             );
 
-            const commentBody = `📚 **Documentation Preview**
+            const commentBody = `**Documentation Preview**
 
             Your documentation changes have been built successfully!
 
-            🔗 **Preview URL**: ${{ steps.deployment.outputs.page_url }}
+            **Preview URL**: ${{ steps.deployment.outputs.page_url }}
 
             The preview will be available once the deployment completes (usually 1-2 minutes).`;
 
@@ -167,11 +167,11 @@ jobs:
         run: |
           cd shared/docs/sphinx-site/build/html
           SIZE=$(du -sh . | cut -f1)
-          echo "📊 Documentation build size: $SIZE"
+          echo "Documentation build size: $SIZE"
 
           # Warn if build is larger than 100MB
           SIZE_MB=$(du -sm . | cut -f1)
           if [ $SIZE_MB -gt 100 ]; then
-            echo "⚠️  Warning: Documentation build is larger than 100MB"
+            echo "Warning: Documentation build is larger than 100MB"
             echo "Consider optimizing images or splitting large files"
           fi

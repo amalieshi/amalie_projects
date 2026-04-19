@@ -168,7 +168,7 @@ def main():
 
     # Update version
     updated_file = update_pyproject_version(new_version, pyproject_path)
-    print(f"✅ Updated {updated_file}")
+    print(f"Updated {updated_file}")
 
     # Git operations
     if args.commit:
@@ -184,30 +184,30 @@ def main():
         ):
             return
 
-        print(f"✅ Committed: {commit_message}")
+        print(f"Committed: {commit_message}")
 
         # Push if requested
         if args.push:
             if not run_command("git push", "Pushing to remote"):
                 return
-            print("✅ Pushed to remote")
+            print("Pushed to remote")
             print(
-                f"🚀 GitHub Actions will automatically tag and publish v{new_version}"
+                f"GitHub Actions will automatically tag and publish v{new_version}"
             )
 
     print(
         f"""
-✅ Version bumped successfully!
+Version bumped successfully!
 
 Next steps:
-{'✅ Changes committed and pushed' if args.push else '1. git add python/web-frameworks/fastapi/pyproject.toml'}
-{'✅ GitHub Actions will handle the rest' if args.push else '2. git commit -m "Bump version to ' + new_version + '"'}
+{'Changes committed and pushed' if args.push else '1. git add python/web-frameworks/fastapi/pyproject.toml'}
+{'GitHub Actions will handle the rest' if args.push else '2. git commit -m "Bump version to ' + new_version + '"'}
 {'   ' if args.push else '3. git push'}
 {'   ' if args.push else '4. GitHub Actions will automatically tag and publish v' + new_version}
 
-🔗 Monitor progress: https://github.com/amalieshi/amalie_projects/actions
-📦 PyPI release: https://pypi.org/project/todolist_fastapi/{new_version}/
-🏷️  GitHub release: https://github.com/amalieshi/amalie_projects/releases/tag/v{new_version}
+Monitor progress: https://github.com/amalieshi/amalie_projects/actions
+PyPI release: https://pypi.org/project/todolist_fastapi/{new_version}/
+GitHub release: https://github.com/amalieshi/amalie_projects/releases/tag/v{new_version}
 """
     )
 

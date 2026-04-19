@@ -139,15 +139,15 @@ See [git-philosophy](git-philosophy.md) for Git workflow guidance.
 Use callouts for special content:
 
 ```markdown
-> **📝 Note**
+> **Note**
 > 
 > This is a note callout.
 
-> **⚠️ Warning**
+> **Warning**
 > 
 > This is a warning callout.
 
-> **💡 Pro Tip**
+> **Pro Tip**
 > 
 > This is a tip callout.
 ```
@@ -208,18 +208,18 @@ $$
 - Avoid spaces and special characters
 - Keep names concise but meaningful
 
-**Emoji Guidelines:**
+**Visual Elements for Navigation:**
 
-Use emojis consistently for visual navigation:
+Use consistent visual elements for clear navigation:
 
-- 📋 for lists, overviews, or summaries
-- 🚀 for getting started or quick actions  
-- 🔧 for technical/advanced topics
-- 💡 for tips and best practices
-- 🎯 for goals or objectives
-- 📚 for references or learning resources
-- ⚠️ for warnings or important notes
-- ✅ for completed items or success states
+- Lists for overviews or summaries
+- Getting started sections for quick actions  
+- Technical sections for advanced topics
+- Tips for best practices
+- Goals or objectives sections
+- References for learning resources
+- Warnings for important notes
+- Checkmarks for completed items or success states
 
 ## Quick Start Workflow
 

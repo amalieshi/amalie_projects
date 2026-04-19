@@ -93,6 +93,6 @@ This repository demonstrates modern development practices across multiple domain
 
 This is a personal learning repository, but suggestions and improvements are welcome!
 
-## 📄 License
+## License
 
 This project is open source and available under the [Apache License 2.0](LICENSE).

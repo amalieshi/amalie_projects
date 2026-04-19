@@ -1,0 +1,442 @@
+{% extends 'display/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    {% if filter_type == 'active' %}Active Todos
+    {% elif filter_type == 'completed' %}Completed Todos  
+    {% else %}My Todos
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Server Offline Warning -->
+{% if not server_online %}
+<div class="server-offline">
+    <h4><i class="fas fa-exclamation-triangle me-2"></i>Unable to Connect</h4>
+    <p class="mb-0">The todo server is currently unavailable. Please check that the FastAPI server is running at <strong>{{ fastapi_url }}</strong></p>
+</div>
+{% endif %}
+
+<!-- Filters and Search -->
+<div class="row mb-4">
+    <div class="col-12">
+        <!-- Filter Pills -->
+        <ul class="nav filter-pills mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if filter_type == 'all' %}active{% endif %}" href="?filter=all{% if search_query %}&search={{ search_query }}{% endif %}{% if view_type %}&view={{ view_type }}{% endif %}">
+                    <i class="fas fa-list me-1"></i>All
+                    {% if all_count > 0 %}
+                        <span class="badge bg-{% if filter_type == 'all' %}light text-primary{% else %}secondary{% endif %} ms-1">{{ all_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if filter_type == 'active' %}active{% endif %}" href="?filter=active{% if search_query %}&search={{ search_query }}{% endif %}{% if view_type %}&view={{ view_type }}{% endif %}">
+                    <i class="fas fa-clock me-1"></i>Active
+                    {% if active_count > 0 %}
+                        <span class="badge bg-{% if filter_type == 'active' %}light text-primary{% else %}warning{% endif %} ms-1">{{ active_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if filter_type == 'completed' %}active{% endif %}" href="?filter=completed{% if search_query %}&search={{ search_query }}{% endif %}{% if view_type %}&view={{ view_type }}{% endif %}">
+                    <i class="fas fa-check-circle me-1"></i>Completed
+                    {% if completed_count > 0 %}
+                        <span class="badge bg-{% if filter_type == 'completed' %}light text-primary{% else %}success{% endif %} ms-1">{{ completed_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+        </ul>
+        
+        <!-- Search Box -->
+        {% if server_online %}
+        <form method="get" class="mb-0">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0" style="border-radius: 50px 0 0 50px; border-color: var(--gray-200);">
+                    <i class="fas fa-search text-muted"></i>    
+                </span>
+                <input type="text" class="form-control border-start-0 search-box" value="{{ search_query }}" name="search" placeholder="Search todos..." style="border-radius: 0 50px 50px 0; border-color: var(--gray-200);">
+                <input type="hidden" name="filter" value="{{ filter_type }}">
+                <input type="hidden" name="view" value="{{ view_type }}">
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Todo Results -->
+{% if server_online %}
+    {% if todos %}
+        <!-- Results Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-muted mb-0">
+                {% if search_query %}
+                    <i class="fas fa-search me-2"></i>{{ todos_count }} result{{ todos_count|pluralize }} for "{{ search_query }}"
+                {% else %}
+                    <i class="fas fa-{% if filter_type == 'active' %}clock{% elif filter_type == 'completed' %}check-circle{% else %}list{% endif %} me-2"></i>{{ todos_count }} 
+                    {% if filter_type == 'active' %}active{% elif filter_type == 'completed' %}completed{% endif %} 
+                    todo{{ todos_count|pluralize }}
+                {% endif %}
+            </h5>
+            <div class="d-flex align-items-center">
+                <!-- View Toggle Buttons -->
+                <div class="btn-group me-3" role="group">
+                    <a href="?filter={{ filter_type }}{% if search_query %}&search={{ search_query }}{% endif %}&view=cards" 
+                       class="btn btn-sm {% if view_type == 'cards' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                        <i class="fas fa-th me-1"></i>Cards
+                    </a>
+                    <a href="?filter={{ filter_type }}{% if search_query %}&search={{ search_query }}{% endif %}&view=list" 
+                       class="btn btn-sm {% if view_type == 'list' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                        <i class="fas fa-list me-1"></i>List
+                    </a>
+                </div>
+                {% if search_query %}
+                    <a href="?filter={{ filter_type }}&view={{ view_type }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times me-1"></i>Clear Search
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Todo Display -->
+        {% if view_type == 'cards' %}
+            <!-- Card View -->
+            <div class="row">
+                {% for todo in todos %}
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <div class="card todo-card {% if todo.completed %}completed{% endif %}" data-todo-id="{{ todo.id }}">
+                            <div class="card-body p-3">
+                                <!-- Status Badge and ID -->
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="status-badge bg-{% if todo.completed %}success{% else %}warning{% endif %} text-white">
+                                        {% if todo.completed %}
+                                            <i class="fas fa-check me-1"></i>Completed
+                                        {% else %}
+                                            <i class="fas fa-clock me-1"></i>Active
+                                        {% endif %}
+                                    </span>
+                                    <small class="text-muted">ID: {{ todo.id }}</small>
+                                </div>
+                                
+                                <!-- Todo Content (Editable) -->
+                                <div class="todo-content">
+                                    <div class="todo-view">
+                                        <h5 class="todo-title">{{ todo.title }}</h5>
+                                        {% if todo.description %}
+                                            <p class="todo-description">{{ todo.description }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="todo-edit" style="display: none;">
+                                        <form method="post" class="edit-form">
+                                            {% csrf_token %}
+                                            <div class="mb-2">
+                                                <input type="text" name="title" class="form-control" value="{{ todo.title }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <textarea name="description" class="form-control" rows="2" placeholder="Description (optional)">{{ todo.description }}</textarea>
+                                            </div>
+                                            <input type="hidden" name="action" value="update_todo">
+                                            <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                            <input type="hidden" name="current_filter" value="{{ filter_type }}">
+                                            <input type="hidden" name="current_search" value="{{ search_query }}">
+                                            <input type="hidden" name="current_view" value="{{ view_type }}">
+                                            <div class="d-flex gap-2">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-save me-1"></i>Save
+                                                </button>
+                                                <button type="button" class="btn btn-secondary btn-sm cancel-edit">
+                                                    <i class="fas fa-times me-1"></i>Cancel
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <!-- Timestamps -->
+                                <div class="timestamps mt-2 mb-3">
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-plus-circle me-1"></i>
+                                        Created: {{ todo.created_at|date:"M j, Y g:i A" }}
+                                    </small>
+                                    {% if todo.updated_at != todo.created_at %}
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-edit me-1"></i>
+                                            Updated: {{ todo.updated_at|date:"M j, Y g:i A" }}
+                                        </small>
+                                    {% endif %}
+                                    {% if todo.completed and todo.completed_at %}
+                                        <small class="text-success d-block">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            Completed: {{ todo.completed_at|date:"M j, Y g:i A" }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-info btn-sm edit-todo">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="toggle_complete">
+                                        <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                        <input type="hidden" name="current_filter" value="{{ filter_type }}">
+                                        <input type="hidden" name="current_search" value="{{ search_query }}">
+                                        <input type="hidden" name="current_view" value="{{ view_type }}">
+                                        {% if todo.completed %}
+                                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                <i class="fas fa-undo me-1"></i>Mark Incomplete
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-outline-success btn-sm">  
+                                                <i class="fas fa-check me-1"></i>Mark Complete
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- List View -->
+            <div class="list-group">
+                {% for todo in todos %}
+                    <div class="list-group-item {% if todo.completed %}todo-completed{% endif %}" data-todo-id="{{ todo.id }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <!-- Status and Content -->
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="status-badge-small bg-{% if todo.completed %}success{% else %}warning{% endif %} text-white me-2">
+                                        {% if todo.completed %}
+                                            <i class="fas fa-check"></i>
+                                        {% else %}
+                                            <i class="fas fa-clock"></i>
+                                        {% endif %}
+                                    </span>
+                                    <div class="todo-content flex-grow-1">
+                                        <div class="todo-view">
+                                            <h6 class="mb-1 todo-title{% if todo.completed %} text-decoration-line-through text-muted{% endif %}">{{ todo.title }}</h6>
+                                            {% if todo.description %}
+                                                <p class="mb-0 text-muted small todo-description{% if todo.completed %} text-decoration-line-through{% endif %}">{{ todo.description }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="todo-edit" style="display: none;">
+                                            <form method="post" class="edit-form">
+                                                {% csrf_token %}
+                                                <div class="row">
+                                                    <div class="col-md-4 mb-2">
+                                                        <input type="text" name="title" class="form-control form-control-sm" value="{{ todo.title }}" required>
+                                                    </div>
+                                                    <div class="col-md-6 mb-2">
+                                                        <input type="text" name="description" class="form-control form-control-sm" value="{{ todo.description }}" placeholder="Description (optional)">
+                                                    </div>
+                                                    <div class="col-md-2 mb-2">
+                                                        <div class="d-flex gap-1">
+                                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                                <i class="fas fa-save"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-secondary btn-sm cancel-edit">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="action" value="update_todo">
+                                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                                <input type="hidden" name="current_filter" value="{{ filter_type }}">
+                                                <input type="hidden" name="current_search" value="{{ search_query }}">
+                                                <input type="hidden" name="current_view" value="{{ view_type }}">
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Timestamps -->
+                                <div class="timestamps">
+                                    <small class="text-muted me-3">
+                                        <i class="fas fa-plus-circle me-1"></i>{{ todo.created_at|date:"M j, Y g:i A" }}
+                                    </small>
+                                    {% if todo.updated_at != todo.created_at %}
+                                        <small class="text-muted me-3">
+                                            <i class="fas fa-edit me-1"></i>{{ todo.updated_at|date:"M j, Y g:i A" }}
+                                        </small>
+                                    {% endif %}
+                                    {% if todo.completed and todo.completed_at %}
+                                        <small class="text-success me-3">
+                                            <i class="fas fa-check-circle me-1"></i>{{ todo.completed_at|date:"M j, Y g:i A" }}
+                                        </small>
+                                    {% endif %}
+                                    <small class="text-muted">ID: {{ todo.id }}</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2 ms-3">
+                                <button type="button" class="btn btn-outline-info btn-sm edit-todo">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="toggle_complete">
+                                    <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                    <input type="hidden" name="current_filter" value="{{ filter_type }}">
+                                    <input type="hidden" name="current_search" value="{{ search_query }}">
+                                    <input type="hidden" name="current_view" value="{{ view_type }}">
+                                    {% if todo.completed %}
+                                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-outline-success btn-sm">  
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            {% if search_query %}
+                <i class="fas fa-search-minus"></i>
+                <h4>No todos found</h4>
+                <p>No todos match your search for "{{ search_query }}"</p>
+                <a href="?filter={{ filter_type }}&view={{ view_type }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>View All {{ filter_type|title }} Todos
+                </a>
+            {% elif filter_type == 'active' %}
+                <i class="fas fa-check-double"></i>
+                <h4>All caught up!</h4>
+                <p>You don't have any active todos right now. Time to relax!</p>
+                <a href="?filter=all&view={{ view_type }}" class="btn btn-primary">
+                    <i class="fas fa-list me-2"></i>View All Todos
+                </a>
+            {% elif filter_type == 'completed' %}
+                <i class="fas fa-tasks"></i>
+                <h4>No completed todos yet</h4>
+                <p>Complete some todos to see them here.</p>
+                <a href="?filter=active&view={{ view_type }}" class="btn btn-primary">
+                    <i class="fas fa-clock me-2"></i>View Active Todos
+                </a>
+            {% else %}
+                <i class="fas fa-clipboard-list"></i>
+                <h4>No todos found</h4>
+                <p>You don't have any todos yet. Create some using the API!</p>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        This is a display-only interface. Use the orchestrator tool to create todos.
+                    </small>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-submit search form on enter
+    document.querySelector('.search-box')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            this.form.submit();
+        }
+    });
+    
+    // Inline editing functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Edit todo buttons
+        document.querySelectorAll('.edit-todo').forEach(button => {
+            button.addEventListener('click', function() {
+                const todoContainer = this.closest('[data-todo-id]');
+                const viewDiv = todoContainer.querySelector('.todo-view');
+                const editDiv = todoContainer.querySelector('.todo-edit');
+                const editButton = todoContainer.querySelector('.edit-todo');
+                
+                // Toggle visibility
+                viewDiv.style.display = 'none';
+                editDiv.style.display = 'block';
+                editButton.style.display = 'none';
+                
+                // Focus on title input
+                const titleInput = editDiv.querySelector('input[name="title"]');
+                if (titleInput) {
+                    titleInput.focus();
+                    titleInput.select();
+                }
+            });
+        });
+        
+        // Cancel edit buttons
+        document.querySelectorAll('.cancel-edit').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const todoContainer = this.closest('[data-todo-id]');
+                const viewDiv = todoContainer.querySelector('.todo-view');
+                const editDiv = todoContainer.querySelector('.todo-edit');
+                const editButton = todoContainer.querySelector('.edit-todo');
+                
+                // Toggle visibility back
+                viewDiv.style.display = 'block';
+                editDiv.style.display = 'none';
+                editButton.style.display = 'inline-block';
+                
+                // Reset form values to original
+                const form = editDiv.querySelector('form');
+                form.reset();
+            });
+        });
+        
+        // Handle enter key in edit forms
+        document.querySelectorAll('.edit-form input[type="text"]').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.form.submit();
+                }
+            });
+        });
+        
+        // Enhanced search functionality
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(e) {
+                // Auto-submit after 1 second of no typing
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => {
+                    this.form.submit();
+                }, 1000);
+            });
+        }
+        
+        // Smooth form submission feedback
+        document.querySelectorAll('form[method="post"]').forEach(form => {
+            form.addEventListener('submit', function() {
+                const button = this.querySelector('button[type="submit"]');
+                if (button) {
+                    button.disabled = true;
+                    const icon = button.querySelector('i');
+                    const originalIcon = icon.className;
+                    icon.className = 'fas fa-spinner fa-spin me-2';
+                    
+                    // Re-enable after 3 seconds as fallback
+                    setTimeout(() => {
+                        button.disabled = false;
+                        icon.className = originalIcon;
+                    }, 3000);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

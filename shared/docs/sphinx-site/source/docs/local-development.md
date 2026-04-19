@@ -213,4 +213,4 @@ python docs.py install --dev --force
 - Try restarting the server (Ctrl+C, then restart with alternative port)
 - Clear browser cache (Ctrl+F5)
 
-Your documentation system is now fully modernized and ready for efficient local development! 🎉
+Your documentation system is now fully modernized and ready for efficient local development!

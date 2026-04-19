@@ -35,7 +35,7 @@ def get_active_todos(db: Session = Depends(get_db)):
     Get all active (incomplete) todo items.
     Returns todos ordered by creation date (newest first).
     """
-    todos = crud.get_todos(db, completed=False)
+    todos = crud.get_active_todos(db)
     return todos
 
 
@@ -49,7 +49,7 @@ def get_completed_todos(db: Session = Depends(get_db)):
     Get all completed todo items.
     Returns todos ordered by creation date (newest first).
     """
-    todos = crud.get_todos(db, completed=True)
+    todos = crud.get_completed_todos(db)
     return todos
 
 

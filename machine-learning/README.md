@@ -48,7 +48,7 @@ conda install tensorflow-gpu scikit-learn pandas numpy matplotlib seaborn
 conda install jupyter jupyterlab plotly
 ```
 
-## 📊 Key Libraries & Frameworks
+## Key Libraries & Frameworks
 
 ### Deep Learning
 ```bash
@@ -78,7 +78,7 @@ pip install pandas numpy matplotlib seaborn plotly
 pip install mlflow wandb tensorboard
 ```
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### Online Courses
 - **Deep Learning Specialization** (Coursera - Andrew Ng)
@@ -97,7 +97,7 @@ pip install mlflow wandb tensorboard
 - [Papers with Code](https://paperswithcode.com/)
 - [Hugging Face Datasets](https://huggingface.co/datasets)
 
-## 🚀 Quick Start Templates
+## Quick Start Templates
 
 ### PyTorch Classification Template
 ```python
@@ -145,7 +145,7 @@ y_pred = pipeline.predict(X_test)
 print(classification_report(y_test, y_pred))
 ```
 
-## 📝 Project Organization
+## Project Organization
 
 ### Standard ML Project Structure
 ```
@@ -168,7 +168,7 @@ ml_project/
 └── README.md
 ```
 
-## 🏆 Project Ideas by Difficulty
+## Project Ideas by Difficulty
 
 ### Beginner (Scikit-learn focus)
 - [ ] Iris flower classification
@@ -188,7 +188,7 @@ ml_project/
 - [ ] Federated learning systems
 - [ ] Custom loss functions and optimizers
 
-## ✅ Best Practices Checklist
+## Best Practices Checklist
 
 - [ ] Use version control for code and track experiments
 - [ ] Document data sources and preprocessing steps

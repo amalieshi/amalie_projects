@@ -41,7 +41,7 @@ Projects in this directory demonstrate:
 - **Postman** or **Insomnia** for API testing
 - **SQL Server Management Studio** for database management
 
-## 📚 Learning Resources
+## Learning Resources
 
 ### Official Documentation
 - [.NET Documentation](https://docs.microsoft.com/en-us/dotnet/)
@@ -53,7 +53,7 @@ Projects in this directory demonstrate:
 - Pluralsight ASP.NET Core courses
 - Clean Code and SOLID principles in C#
 
-## 🚀 Quick Start Templates
+## Quick Start Templates
 
 ```bash
 # Create new console application
@@ -72,7 +72,7 @@ dotnet new wpf -n MyWpfApp
 dotnet new maui -n MyMauiApp
 ```
 
-## 📝 Project Naming Convention
+## Project Naming Convention
 
 Use descriptive, PascalCase names that indicate the project purpose:
 - `TaskManagerApi` - Web API for task management
@@ -80,7 +80,7 @@ Use descriptive, PascalCase names that indicate the project purpose:
 - `PersonalBudgetBlazor` - Blazor budgeting application
 - `FileUtilitiesConsole` - Console file management tools
 
-## ✅ Best Practices Checklist
+## Best Practices Checklist
 
 - [ ] Follow C# coding conventions and naming standards
 - [ ] Implement proper error handling and logging

@@ -65,7 +65,7 @@ Welcome! I'm a passionate developer and certified test automation engineer focus
       - Advanced automation frameworks
       - Building impactful applications
 
-🌐 **Conference Participation & Community Involvement**
+**Conference Participation & Community Involvement**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. admonition:: Academic & Professional Conferences
@@ -75,12 +75,12 @@ Welcome! I'm a passionate developer and certified test automation engineer focus
 
 **Recent Conference Participation:**
 
-- **🏥 Medical Informatics Europe, Genova, Italy**: Presenting and collaborating on the latest medical informatics development
-- **🎯 SeleniumConf Valencia, Spain**: Contributing to open-source test automation community and sharing automation practices
-- **🏥 Medical Informatics Europe, Glasgow, UK**: Attending to learn about the latest medical informatics academic research
-- **🎓 RSLondon, Imperial College London, UK (2024)**: Academic collaboration with researchers from Imperial, Cambridge, Allan Turing Institute and other prestigious academic institutions in the UK
+- **Medical Informatics Europe, Genova, Italy**: Presenting and collaborating on the latest medical informatics development
+- **SeleniumConf Valencia, Spain**: Contributing to open-source test automation community and sharing automation practices
+- **Medical Informatics Europe, Glasgow, UK**: Attending to learn about the latest medical informatics academic research
+- **RSLondon, Imperial College London, UK (2024)**: Academic collaboration with researchers from Imperial, Cambridge, Allan Turing Institute and other prestigious academic institutions in the UK
 
-🛠️ **Technical Skills**
+**Technical Skills**
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Programming Languages**
@@ -134,7 +134,7 @@ Welcome! I'm a passionate developer and certified test automation engineer focus
       - **VS Code**: Primary development environment
       - **GitHub Actions**: CI/CD pipelines
 
-🚀 **Project Methodology**
+**Project Methodology**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Development Process:**
@@ -153,7 +153,7 @@ Welcome! I'm a passionate developer and certified test automation engineer focus
 - **Performance**: Optimization and monitoring
 
 
-💡 **What Drives Me**
+**What Drives Me**
 ^^^^^^^^^^^^^^^^^^^^^
 
 Technology has the power to solve real-world problems and improve people's lives. Whether it's building efficient web applications, creating insightful data visualizations, or developing intelligent machine learning models, I'm motivated by the potential to make a positive impact.

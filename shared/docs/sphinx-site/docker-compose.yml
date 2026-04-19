@@ -14,12 +14,12 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
     command: >
       bash -c "
-        echo '🔧 Installing dependencies from pyproject.toml...' &&
+        echo 'Installing dependencies from pyproject.toml...' &&
         pip install --upgrade pip &&
         pip install -e '.[dev,enhanced]' &&
-        echo '📚 Setting up external docs...' &&
+        echo 'Setting up external docs...' &&
         python setup_external_docs.py &&
-        echo '🚀 Starting development server...' &&
+        echo 'Starting development server...' &&
         sphinx-autobuild source build/html 
           --host 0.0.0.0 
           --port 8000 
@@ -42,18 +42,18 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
     command: >
       bash -c "
-        echo '🔧 Installing dependencies from pyproject.toml...' &&
+        echo 'Installing dependencies from pyproject.toml...' &&
         pip install --upgrade pip &&
         pip install -e '.[dev,enhanced]' &&
-        echo '📚 Setting up external docs...' &&
+        echo 'Setting up external docs...' &&
         python setup_external_docs.py &&
-        echo '🧹 Cleaning previous builds...' &&
+        echo 'Cleaning previous builds...' &&
         python docs.py clean &&
-        echo '🏗️ Building documentation...' &&
+        echo 'Building documentation...' &&
         python docs.py build &&
-        echo '🔗 Checking links...' &&
+        echo 'Checking links...' &&
         sphinx-build -b linkcheck source build/linkcheck &&
-        echo '✅ Build complete! Files in build/html'
+        echo 'Build complete! Files in build/html'
       "
     profiles: ["build"]
 
@@ -67,12 +67,12 @@ services:
       - PYTHONUNBUFFERED=1
     command: >
       bash -c "
-        echo '🔧 Installing dependencies from pyproject.toml...' &&
+        echo 'Installing dependencies from pyproject.toml...' &&
         pip install --upgrade pip &&
         pip install -e '.[dev]' &&
-        echo '🔍 Running documentation linting...' &&
+        echo 'Running documentation linting...' &&
         doc8 source --max-line-length 100 &&
-        echo '✅ Linting complete!'
+        echo 'Linting complete!'
       "
     profiles: ["lint"]
 
@@ -87,21 +87,21 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
     command: >
       bash -c "
-        echo '🔧 Installing dependencies from pyproject.toml...' &&
+        echo 'Installing dependencies from pyproject.toml...' &&
         pip install --upgrade pip &&
         pip install -e '.[dev,enhanced,quality]' &&
-        echo '📚 Setting up external docs...' &&
+        echo 'Setting up external docs...' &&
         python setup_external_docs.py &&
-        echo '🧹 Cleaning previous builds...' &&
+        echo 'Cleaning previous builds...' &&
         rm -rf build/* &&
-        echo '🏗️ Building production documentation...' &&
+        echo 'Building production documentation...' &&
         sphinx-build -b html source build/html -W -E -a --keep-going &&
-        echo '🔗 Checking all links...' &&
+        echo 'Checking all links...' &&
         sphinx-build -b linkcheck source build/linkcheck &&
-        echo '📊 Build statistics:' &&
+        echo 'Build statistics:' &&
         du -sh build/html &&
         find build/html -name '*.html' | wc -l | xargs echo 'Total HTML pages:' &&
-        echo '✅ Production build complete!'
+        echo 'Production build complete!'
       "
     profiles: ["production"]
 

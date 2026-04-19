@@ -1,10 +1,10 @@
 
-FastAPI Todo List Package
-=========================
+FastAPI Web Applications
+========================
 
-A simple and efficient todo list API built with FastAPI, featuring full CRUD operations with timestamps for creation, updates, and completion tracking...
+This directory contains FastAPI web applications showcasing modern Python web API development, each with its own `pyproject.toml` for dependency manag...
 
-**Technologies:** FastAPI • Python • SQLite
+**Technologies:** FastAPI • Django • Python • SQLite
 
 
 .. include:: ../../../../../python/web-frameworks/fastapi/README.md

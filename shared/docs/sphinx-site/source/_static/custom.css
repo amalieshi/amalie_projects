@@ -219,15 +219,15 @@ table.docutils tbody tr:hover {
 
 /* Status Indicators */
 .status-complete::before {
-    content: "✅ ";
+    content: "Complete: ";
 }
 
 .status-progress::before {
-    content: "🚧 ";
+    content: "In Progress: ";
 }
 
 .status-planned::before {
-    content: "📋 ";
+    content: "Planned: ";
 }
 
 /* Code Blocks Enhancement */

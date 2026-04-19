@@ -45,7 +45,7 @@ dotnet new --install shared/templates/webapi-template
 dotnet new mywebapi -n MyProjectName
 ```
 
-## 📝 Template Structure Example
+## Template Structure Example
 
 Each template folder contains:
 ```
@@ -57,7 +57,7 @@ template-name/
 └── scripts/               # Setup and build scripts
 ```
 
-## ✨ Customization Guidelines
+## Customization Guidelines
 
 1. **Replace placeholders**: Look for `{{PROJECT_NAME}}`, `{{AUTHOR}}`, etc.
 2. **Update namespaces**: Change default namespaces to match your project
@@ -65,7 +65,7 @@ template-name/
 4. **Customize README**: Update project-specific documentation
 5. **Set up CI/CD**: Configure build and deployment pipelines
 
-## 🤝 Contributing Templates
+## Contributing Templates
 
 To add a new template:
 1. Create a new folder with descriptive name

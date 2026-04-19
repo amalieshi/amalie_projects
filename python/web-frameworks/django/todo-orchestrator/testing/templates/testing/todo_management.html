@@ -1,0 +1,372 @@
+{% extends 'testing/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Todo Management - Todo API Orchestrator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Todo List Management</h4>
+            </div>
+            <div class="card-body">
+                {% if not server_status.is_running %}
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Server Offline:</strong> The FastAPI server needs to be running to manage todos.
+                        <a href="{% url 'dashboard' %}" class="btn btn-sm btn-success ms-2">
+                            <i class="fas fa-play"></i> Start Server
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted">
+                        Manage your todos from the FastAPI Todo List API. View, complete, and delete todos directly from this interface.
+                    </p>
+                    
+                    <!-- Navigation tabs -->
+                    <ul class="nav nav-tabs" id="todoTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-panel" type="button">
+                                <i class="fas fa-list"></i> All Todos 
+                                {% if all_todos_success %}
+                                    <span class="badge bg-secondary ms-1">{{ all_todos|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="active-tab" data-bs-toggle="tab" data-bs-target="#active-panel" type="button">
+                                <i class="fas fa-clock text-warning"></i> Active 
+                                {% if active_todos_success %}
+                                    <span class="badge bg-warning ms-1">{{ active_todos|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed-panel" type="button">
+                                <i class="fas fa-check-circle text-success"></i> Completed 
+                                {% if completed_todos_success %}
+                                    <span class="badge bg-success ms-1">{{ completed_todos|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3" id="todoTabsContent">
+                        <!-- All Todos Tab -->
+                        <div class="tab-pane fade show active" id="all-panel" role="tabpanel">
+                            {% if all_todos_success %}
+                                {% if all_todos %}
+                                    <div class="row">
+                                        {% for todo in all_todos %}
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="card {% if todo.completed %}border-success{% else %}border-warning{% endif %}">
+                                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                                        <span class="fw-bold">
+                                                            {% if todo.completed %}
+                                                                <i class="fas fa-check-circle text-success"></i>
+                                                            {% else %}
+                                                                <i class="fas fa-clock text-warning"></i>
+                                                            {% endif %}
+                                                            {{ todo.title|truncatechars:30 }}
+                                                        </span>
+                                                        <small class="text-muted">ID: {{ todo.id }}</small>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% if todo.description %}
+                                                            <p class="card-text">{{ todo.description }}</p>
+                                                        {% endif %}
+                                                        <div class="text-muted small">
+                                                            <div><strong>Created:</strong> {{ todo.created_at|date:"M d, Y H:i" }}</div>
+                                                            <div><strong>Updated:</strong> {{ todo.updated_at|date:"M d, Y H:i" }}</div>
+                                                            {% if todo.completed_at %}
+                                                                <div><strong>Completed:</strong> {{ todo.completed_at|date:"M d, Y H:i" }}</div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <div class="btn-group w-100" role="group">
+                                                            <form method="post" class="d-inline">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="toggle_complete">
+                                                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                                                <button type="submit" class="btn {% if todo.completed %}btn-outline-warning{% else %}btn-outline-success{% endif %} btn-sm">
+                                                                    {% if todo.completed %}
+                                                                        <i class="fas fa-undo"></i> Undo
+                                                                    {% else %}
+                                                                        <i class="fas fa-check"></i> Complete
+                                                                    {% endif %}
+                                                                </button>
+                                                            </form>
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal-{{ todo.id }}">
+                                                                <i class="fas fa-edit"></i> Edit
+                                                            </button>
+                                                            <form method="post" class="d-inline" onsubmit="return confirmDelete('{{ todo.title }}')">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="delete">
+                                                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                                    <i class="fas fa-trash"></i> Delete
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info text-center" role="alert">
+                                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                                        <h5>No todos found</h5>
+                                        <p>You haven't created any todos yet. <a href="{% url 'api_test' %}">Create your first todo</a> to get started!</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Error:</strong> Could not load todos. Make sure the FastAPI server is running.
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Active Todos Tab -->
+                        <div class="tab-pane fade" id="active-panel" role="tabpanel">
+                            {% if active_todos_success %}
+                                {% if active_todos %}
+                                    <div class="row">
+                                        {% for todo in active_todos %}
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="card border-warning">
+                                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                                        <span class="fw-bold">
+                                                            <i class="fas fa-clock text-warning"></i>
+                                                            {{ todo.title|truncatechars:30 }}
+                                                        </span>
+                                                        <small class="text-muted">ID: {{ todo.id }}</small>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% if todo.description %}
+                                                            <p class="card-text">{{ todo.description }}</p>
+                                                        {% endif %}
+                                                        <div class="text-muted small">
+                                                            <div><strong>Created:</strong> {{ todo.created_at|date:"M d, Y H:i" }}</div>
+                                                            <div><strong>Updated:</strong> {{ todo.updated_at|date:"M d, Y H:i" }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <div class="btn-group w-100" role="group">
+                                                            <form method="post" class="d-inline">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="toggle_complete">
+                                                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                                                    <i class="fas fa-check"></i> Complete
+                                                                </button>
+                                                            </form>
+                                                            <form method="post" class="d-inline" onsubmit="return confirmDelete('{{ todo.title }}')">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="delete">
+                                                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                                    <i class="fas fa-trash"></i> Delete
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-success text-center" role="alert">
+                                        <i class="fas fa-trophy fa-3x mb-3"></i>
+                                        <h5>All caught up!</h5>
+                                        <p>You have no active todos. Great job! <a href="{% url 'api_test' %}">Create a new todo</a> if you need to.</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Error:</strong> Could not load active todos.
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Completed Todos Tab -->
+                        <div class="tab-pane fade" id="completed-panel" role="tabpanel">
+                            {% if completed_todos_success %}
+                                {% if completed_todos %}
+                                    <div class="row">
+                                        {% for todo in completed_todos %}
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="card border-success">
+                                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                                        <span class="fw-bold">
+                                                            <i class="fas fa-check-circle text-success"></i>
+                                                            {{ todo.title|truncatechars:30 }}
+                                                        </span>
+                                                        <small class="text-muted">ID: {{ todo.id }}</small>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% if todo.description %}
+                                                            <p class="card-text">{{ todo.description }}</p>
+                                                        {% endif %}
+                                                        <div class="text-muted small">
+                                                            <div><strong>Created:</strong> {{ todo.created_at|date:"M d, Y H:i" }}</div>
+                                                            <div><strong>Updated:</strong> {{ todo.updated_at|date:"M d, Y H:i" }}</div>
+                                                            {% if todo.completed_at %}
+                                                                <div><strong>Completed:</strong> {{ todo.completed_at|date:"M d, Y H:i" }}</div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <div class="btn-group w-100" role="group">
+                                                            <form method="post" class="d-inline">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="toggle_complete">
+                                                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                                                <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                                    <i class="fas fa-undo"></i> Mark Incomplete
+                                                                </button>
+                                                            </form>
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal-{{ todo.id }}">
+                                                                <i class="fas fa-edit"></i> Edit
+                                                            </button>
+                                                            <form method="post" class="d-inline" onsubmit="return confirmDelete('{{ todo.title }}')">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="delete">
+                                                                <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                                    <i class="fas fa-trash"></i> Delete
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info text-center" role="alert">
+                                        <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                                        <h5>No completed todos</h5>
+                                        <p>You haven't completed any todos yet. <a href="#active-tab" onclick="document.getElementById('active-tab').click()">Check your active todos</a> and start completing them!</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Error:</strong> Could not load completed todos.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Todo Button -->
+{% if server_status.is_running %}
+<div class="row mt-3">
+    <div class="col-12 text-center">
+        <a href="{% url 'api_test' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i> Add New Todo
+        </a>
+        <a href="{% url 'api_test' %}" class="btn btn-outline-secondary btn-lg ms-2">
+            <i class="fas fa-flask"></i> API Testing
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Edit Modals for All Todos -->
+{% if all_todos %}
+    {% for todo in all_todos %}
+        <div class="modal fade" id="editModal-{{ todo.id }}" tabindex="-1" aria-labelledby="editModalLabel-{{ todo.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel-{{ todo.id }}">
+                            <i class="fas fa-edit"></i> Edit Todo
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post">
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="edit">
+                            <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                            
+                            <div class="mb-3">
+                                <label for="editTitle-{{ todo.id }}" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="editTitle-{{ todo.id }}" name="title" value="{{ todo.title }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="editDescription-{{ todo.id }}" class="form-label">Description</label>
+                                <textarea class="form-control" id="editDescription-{{ todo.id }}" name="description" rows="3">{{ todo.description }}</textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="editCompleted-{{ todo.id }}" name="completed" {% if todo.completed %}checked{% endif %}>
+                                    <label class="form-check-label" for="editCompleted-{{ todo.id }}">
+                                        Mark as completed
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Hidden CSRF token for JavaScript -->
+{% csrf_token %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(todoTitle) {
+        return confirm(`Are you sure you want to delete \"${todoTitle}\"? This action cannot be undone.`);
+    }
+
+    // Auto-refresh todos every 30 seconds if server is running
+    {% if server_status.is_running %}
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                location.reload();
+            }
+        }, 30000);
+    {% endif %}
+
+    // Simple form submission logging (does not interfere with submission)
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Todo management page loaded - setting up form listeners');
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const action = this.querySelector('input[name=\"action\"]')?.value;
+                const todoId = this.querySelector('input[name=\"todo_id\"]')?.value;
+                console.log(`Form submitting: action=${action}, todoId=${todoId}`);
+                console.log('Form method:', this.method);
+                console.log('Form action:', this.action || 'current page');
+                // Let form submit naturally - no preventDefault!
+            });
+        });
+    });
+</script>
+{% endblock %}

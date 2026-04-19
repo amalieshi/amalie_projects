@@ -7,7 +7,7 @@ name = "todo-api-orchestrator"
 version = "1.0.0"
 description = "Django-based testing orchestration tool for FastAPI Todo List API"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = {text = "MIT"}
 authors = [
     {name = "Amalie Shi", email = "amalie.shi.jhmi@gmail.com"},
 ]
@@ -30,7 +30,7 @@ classifiers = [
 
 requires-python = ">=3.9"
 dependencies = [
-    "Django>=4.2.0,<5.1.0",
+    "Django>=6.0.0",
     "requests>=2.31.0",
     "psutil>=5.9.0",
     "django-cors-headers>=4.3.0",
@@ -61,10 +61,11 @@ fastapi-server = [
 "Source" = "https://github.com/amalieshi/amalie_projects"
 
 [project.scripts]
-todo-orchestrator = "todo_orchestrator.manage:main"
+todo-orchestrator = "todo_orchestrator.wsgi:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+include = ["todo_orchestrator*", "testing*"]
+exclude = ["tests*"]
 
 [tool.setuptools.package-data]
 "*" = ["*.html", "*.css", "*.js", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.svg"]

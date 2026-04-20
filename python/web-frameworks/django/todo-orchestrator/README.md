@@ -1,8 +1,16 @@
 # Todo API Orchestrator
 
+**📂 Project Path**: `python/web-frameworks/django/todo-orchestrator/`  
+**🔗 GitHub Repository**: [https://github.com/AmalieShi/amalie_projects](https://github.com/AmalieShi/amalie_projects)
+
 ## Development and Testing Tool
 
 A comprehensive Django-based testing and orchestration platform designed for developers working with the FastAPI Todo List API. This tool provides advanced debugging, testing, and server management capabilities.
+
+🌐 **Live Demo**: [https://to-do-list-testing-orchestrator.onrender.com](https://to-do-list-testing-orchestrator.onrender.com)  
+🚀 **Deployed on**: [Render](https://render.com) with automatic HTTPS, scaling, and zero-config deployment
+
+> **⚠️ Note**: This deployment uses Render's free tier. After periods of inactivity, the service may take up to 50 seconds to reconnect when first accessed.
 
 ## Purpose
 
@@ -47,6 +55,39 @@ A comprehensive Django-based testing and orchestration platform designed for dev
 - CSRF protection on all forms
 
 ## Getting Started
+
+### Local Development
+1. Install dependencies: `pip install -r requirements.txt`
+2. Run migrations: `python manage.py migrate`
+3. Start the server: `python manage.py runserver 8001`
+4. Visit `http://localhost:8001` to access the orchestrator
+
+### Deploy to Render
+
+This project is configured for deployment on [Render.com](https://render.com) with the following files:
+
+- **render.yaml**: Deployment configuration
+- **build.sh**: Build script that installs dependencies, runs migrations, and collects static files
+- **start.sh**: Startup script that runs the Django app with gunicorn
+- **requirements.txt**: Production dependencies including whitenoise for static file serving
+
+#### Deployment Steps:
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Set the service name (e.g., "django-todo-orchestrator")
+4. Render will automatically use the `render.yaml` configuration
+5. Update the CORS settings in `settings.py` with your deployed FastAPI server URL
+
+#### Environment Variables:
+Render automatically sets these environment variables:
+- `RENDER=1` - Enables production settings
+- `DEBUG=False` - Disables debug mode
+- `DJANGO_SECRET_KEY` - Auto-generated secret key
+
+#### Post-Deployment:
+- Update `FASTAPI_SERVER_URL` in settings.py with your FastAPI server URL
+- Update `CORS_ALLOWED_ORIGINS` to include your FastAPI server domain
+- The orchestrator will be available at `https://your-service-name.onrender.com`
 
 ### Prerequisites
 - Python 3.8+

@@ -1,5 +1,8 @@
 # Todo API
 
+**📂 Project Path**: `python/web-frameworks/fastapi/todo-api/`  
+**🔗 GitHub Repository**: [https://github.com/AmalieShi/amalie_projects](https://github.com/AmalieShi/amalie_projects)
+
 A robust FastAPI-based todo list API with comprehensive CRUD operations, automatic timestamp tracking, and complete data validation.
 
 ## Features

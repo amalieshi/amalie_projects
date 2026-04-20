@@ -54,12 +54,15 @@ html_title = f"{project} - {release}"
 # Theme options for Furo
 html_theme_options = {
     "sidebar_hide_name": True,
+    "navigation_with_keys": True,
     "light_logo": "logo.png",
     "dark_logo": "logo.png",
     "light_css_variables": {
         "color-brand-primary": "#2563eb",
         "color-brand-content": "#2563eb",
         "color-admonition-background": "transparent",
+        "sidebar-tree-space-above": "1rem",
+        "sidebar-item-spacing-vertical": "0.5rem",
     },
     "dark_css_variables": {
         "color-brand-primary": "#60a5fa",
@@ -82,19 +85,26 @@ html_theme_options = {
 # MyST Parser configuration for Markdown support
 myst_enable_extensions = [
     "amsmath",
-    "colon_fence",
+    "colon_fence", 
     "deflist",
     "dollarmath",
     "fieldlist",
     "html_admonition",
     "html_image",
-    "linkify",
     "replacements",
     "smartquotes",
     "strikethrough",
     "substitution",
     "tasklist",
 ]
+
+# Enable includes and other features
+myst_url_schemes = ["http", "https", "mailto"]
+myst_heading_anchors = 1
+
+# Configure toctree behavior for better navigation
+html_show_sourcelink = False
+html_copy_source = False
 
 # Intersphinx mapping
 intersphinx_mapping = {
@@ -126,25 +136,6 @@ html_js_files = [
 
 # Master document
 master_doc = "index"
-
-# MyST Parser configuration
-myst_enable_extensions = [
-    "amsmath",
-    "colon_fence",
-    "deflist",
-    "dollarmath",
-    "fieldlist",
-    "html_admonition",
-    "html_image",
-    "replacements",
-    "smartquotes",
-    "strikethrough",
-    "substitution",
-    "tasklist",
-]
-myst_url_schemes = ["http", "https", "mailto", "ftp"]
-myst_heading_anchors = 2
-
 
 # Custom function to find markdown files in shared/docs
 def find_external_docs():

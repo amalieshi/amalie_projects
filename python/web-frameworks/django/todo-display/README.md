@@ -1,16 +1,16 @@
 # Todo Display
 
+**📂 Project Path**: `python/web-frameworks/django/todo-display/`  
+**🔗 GitHub Repository**: [https://github.com/AmalieShi/amalie_projects](https://github.com/AmalieShi/amalie_projects)
+
 ## User-Focused Todo Application
 
 A clean, intuitive Django web application designed for end users to create, view, and manage their todos in a user-friendly interface. This application focuses on user experience and simplicity.
 
 🌐 **Live Demo**: [https://todo-list-6ldf.onrender.com/?filter=all&view=cards](https://todo-list-6ldf.onrender.com/?filter=all&view=cards)  
-
-> **⏳ Note:**  
-> After deployment or server restart, the website may take up to **50 seconds** to become fully ready and display todos. This is due to the FastAPI backend server startup and health checks. Please refresh the page if you see a loading indicator or empty list during this period.
-
-
 🚀 **Deployed on**: [Render](https://render.com) with automatic HTTPS, scaling, and zero-config deployment
+
+> **⚠️ Note**: This deployment uses Render's free tier. After periods of inactivity, the service may take up to 50 seconds to reconnect when first accessed.
 
 ## Purpose
 

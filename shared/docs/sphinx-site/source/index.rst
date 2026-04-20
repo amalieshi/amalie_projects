@@ -31,17 +31,32 @@ Welcome to this development portfolio! This site documents projects and technica
 ^^^^^^^^^^^^^^^^^
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Portfolio
+   :titlesonly:
 
    about/index
    projects/index
    docs/index
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Technologies
+   :titlesonly:
 
    csharp/index
+   python/index
+   machine-learning/index
+   frontend/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Featured Projects
+   :titlesonly:
+
+   Python Web Frameworks <python/web-frameworks>
+   Django Todo Display <python/django-todo-display>
+   Django Todo Orchestrator <python/django-todo-orchestrator>
+   FastAPI Todo Service <python/fastapi-todo-service>
 
 **Last Updated:** |today|

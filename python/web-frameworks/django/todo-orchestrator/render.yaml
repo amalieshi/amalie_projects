@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: django-todo-orchestrator
+    env: python
+    plan: free
+    buildCommand: "chmod +x build.sh start.sh && ./build.sh"
+    startCommand: "bash start.sh"
+    healthCheckPath: "/health/"
+    envVars:
+      - key: RENDER
+        value: "1"
+      - key: DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true

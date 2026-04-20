@@ -18,6 +18,39 @@
 </div>
 {% endif %}
 
+<!-- Add New Todo Section -->
+{% if server_online %}
+<div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Todo</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" id="create-todo-form">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="new-title" class="form-label">Title <span class="text-danger">*</span></label>
+                    <input type="text" name="title" id="new-title" class="form-control" placeholder="Enter todo title..." required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="new-description" class="form-label">Description <span class="text-muted">(optional)</span></label>
+                    <input type="text" name="description" id="new-description" class="form-control" placeholder="Enter description...">
+                </div>
+                <div class="col-md-2 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus me-2"></i>Add Todo
+                    </button>
+                </div>
+            </div>
+            <input type="hidden" name="action" value="create_todo">
+            <input type="hidden" name="current_filter" value="{{ filter_type }}">
+            <input type="hidden" name="current_search" value="{{ search_query }}">
+            <input type="hidden" name="current_view" value="{{ view_type }}">
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <!-- Filters and Search -->
 <div class="row mb-4">
     <div class="col-12">
@@ -195,6 +228,17 @@
                                             </button>
                                         {% endif %}
                                     </form>
+                                    <form method="post" class="d-inline delete-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_todo">
+                                        <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                        <input type="hidden" name="current_filter" value="{{ filter_type }}">
+                                        <input type="hidden" name="current_search" value="{{ search_query }}">
+                                        <input type="hidden" name="current_view" value="{{ view_type }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm delete-todo" data-title="{{ todo.title }}">
+                                            <i class="fas fa-trash me-1"></i>Delete
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -296,6 +340,17 @@
                                         </button>
                                     {% endif %}
                                 </form>
+                                <form method="post" class="d-inline delete-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete_todo">
+                                    <input type="hidden" name="todo_id" value="{{ todo.id }}">
+                                    <input type="hidden" name="current_filter" value="{{ filter_type }}">
+                                    <input type="hidden" name="current_search" value="{{ search_query }}">
+                                    <input type="hidden" name="current_view" value="{{ view_type }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm delete-todo" data-title="{{ todo.title }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -330,11 +385,11 @@
             {% else %}
                 <i class="fas fa-clipboard-list"></i>
                 <h4>No todos found</h4>
-                <p>You don't have any todos yet. Create some using the API!</p>
+                <p>You don't have any todos yet. Create your first todo using the form above!</p>
                 <div class="mt-3">
                     <small class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
-                        This is a display-only interface. Use the orchestrator tool to create todos.
+                        Use the "Add New Todo" form above to get started.
                     </small>
                 </div>
             {% endif %}
@@ -437,6 +492,39 @@
                 }
             });
         });
+        
+        // Delete confirmation
+        document.querySelectorAll('.delete-todo').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const todoTitle = this.getAttribute('data-title');
+                const confirmMessage = `Are you sure you want to delete "${todoTitle}"? This action cannot be undone.`;
+                
+                if (confirm(confirmMessage)) {
+                    // Submit the delete form
+                    this.closest('form').submit();
+                }
+            });
+        });
+        
+        // Clear form after successful submission
+        const createForm = document.getElementById('create-todo-form');
+        if (createForm) {
+            createForm.addEventListener('submit', function() {
+                // Clear form after a short delay to allow submission
+                setTimeout(() => {
+                    this.reset();
+                    document.getElementById('new-title').focus();
+                }, 100);
+            });
+        }
+        
+        // Auto-focus on create form title input
+        const newTitleInput = document.getElementById('new-title');
+        if (newTitleInput && !window.location.search.includes('search=')) {
+            // Only auto-focus if not performing a search
+            newTitleInput.focus();
+        }
     });
 </script>
 {% endblock %}

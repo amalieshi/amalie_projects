@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,69 +21,80 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-%@*l&=bby2#)aqpus*v#&w1ee)lrs7%y!ny8ox995g!9eg4l1='
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY", "django-insecure-fallback-key-for-development-only"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = []
+# Allow all Render.com subdomains in production, specific hosts in development
+if os.environ.get("RENDER"):
+    ALLOWED_HOSTS = [
+        ".onrender.com",  # Allow all Render subdomains
+        "0.0.0.0",
+        "localhost",
+        "127.0.0.1",
+    ]
+else:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "todo-list-6ldf.onrender.com"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     # Third party apps
-    'django_bootstrap5',
-    'corsheaders',
-    
+    "django_bootstrap5",
+    "corsheaders",
     # Local apps
-    'display',
+    "display",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'todo_display.urls'
+ROOT_URLCONF = "todo_display.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'todo_display.wsgi.application'
+WSGI_APPLICATION = "todo_display.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -92,16 +104,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -109,9 +121,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -121,30 +133,78 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
+
+# Production static files configuration
+if os.environ.get("RENDER"):
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+else:
+    # Development - no need for STATIC_ROOT
+    pass
+
+# CORS settings for FastAPI communication
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# CSRF settings for production deployment
+if os.environ.get("RENDER"):
+    CSRF_TRUSTED_ORIGINS = [
+        "https://todo-list-6ldf.onrender.com",
+        "https://*.onrender.com",
+    ]
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_HTTPONLY = False
+    # Add session cookie settings for production
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+else:
+    # Development settings
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:8001",
+        "http://127.0.0.1:8001",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+
+# Additional CSRF settings for Django 4.0+ compatibility
+CSRF_USE_SESSIONS = False  # Use cookies instead of sessions
+CSRF_COOKIE_AGE = 31449600  # 1 year
+CSRF_FAILURE_VIEW = "django.views.csrf.csrf_failure"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# FastAPI server URL
-FASTAPI_SERVER_URL = 'http://127.0.0.1:8000'
+# FastAPI Server URL - environment aware
+if os.environ.get("RENDER"):
+    # On Render, FastAPI runs on Django port + 1000 to avoid conflicts
+    django_port = int(os.environ.get("PORT", 10000))
+    fastapi_port = django_port + 1000
+    # Use localhost for internal communication even when binding to 0.0.0.0
+    FASTAPI_SERVER_URL = f"http://127.0.0.1:{fastapi_port}"
+else:
+    # Local development
+    FASTAPI_SERVER_URL = "http://127.0.0.1:8000"
 
 # Logging configuration
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-    'loggers': {
-        'display': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
+    "loggers": {
+        "display": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
         },
     },
 }

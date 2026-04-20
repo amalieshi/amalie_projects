@@ -2,7 +2,7 @@
 Todo Display
 ============
 
-A clean, intuitive Django web application designed for end users to view and manage their todos in a user-friendly interface. This application focuses...
+A clean, intuitive Django web application designed for end users to create, view, and manage their todos in a user-friendly interface. This application focuses on user experience and simplicity.
 
 **Technologies:** FastAPI • Django • Python
 

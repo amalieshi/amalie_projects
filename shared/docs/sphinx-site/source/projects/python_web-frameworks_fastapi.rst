@@ -2,7 +2,7 @@
 FastAPI Web Applications
 ========================
 
-This directory contains FastAPI web applications showcasing modern Python web API development, each with its own `pyproject.toml` for dependency manag...
+This directory contains FastAPI web applications showcasing modern Python web API development, each with its own `pyproject.toml` for dependency management.
 
 **Technologies:** FastAPI • Django • Python • SQLite
 

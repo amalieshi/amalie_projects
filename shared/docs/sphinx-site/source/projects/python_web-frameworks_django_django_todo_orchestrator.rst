@@ -2,7 +2,7 @@
 Todo API Orchestrator
 =====================
 
-A comprehensive Django-based testing and orchestration platform designed for developers working with the FastAPI Todo List API. This tool provides adv...
+A comprehensive Django-based testing and orchestration platform designed for developers working with the FastAPI Todo List API. This tool provides advanced debugging, testing, and server management capabilities.
 
 **Technologies:** FastAPI • Django • Python
 

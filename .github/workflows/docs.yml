@@ -7,6 +7,12 @@ on:
     paths:
       - "shared/docs/sphinx-site/**"
       - ".github/workflows/docs.yml"
+      - "python/**/README.md"
+      - "csharp/**/README.md" 
+      - "frontend/**/README.md"
+      - "machine-learning/**/README.md"
+      - "**/pyproject.toml"
+      - "**/requirements.txt"
 
   # Allows manual triggering from the Actions tab
   workflow_dispatch:

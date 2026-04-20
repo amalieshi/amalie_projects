@@ -121,10 +121,23 @@ def extract_project_description(readme_path: Path) -> str:
         for i, line in enumerate(lines):
             line = line.strip()
             if line and not line.startswith("#") and not line.startswith("```"):
-                # Return first meaningful paragraph, truncated
-                description = line[:150]
-                if len(line) > 150:
-                    description += "..."
+                # Return complete sentence(s) - find end of sentence or reasonable break
+                description = line
+                
+                # If line is very long (>300 chars), try to break at sentence end
+                if len(description) > 300:
+                    # Look for sentence endings within first 250 chars
+                    sentence_ends = ['.', '!', '?']
+                    for end_char in sentence_ends:
+                        end_pos = description.find(end_char, 100, 250)
+                        if end_pos != -1:
+                            description = description[:end_pos + 1]
+                            break
+                    else:
+                        # If no sentence end found, truncate at word boundary
+                        words = description[:250].split()
+                        description = ' '.join(words[:-1]) + "..."
+                
                 return description
 
         return "A project showcasing development skills and best practices."
@@ -172,7 +185,7 @@ def extract_project_technologies(readme_path: Path) -> list[str]:
             if pattern in content:
                 found_techs.append(display_name)
 
-        return found_techs[:5]  # Limit to 5 technologies
+        return found_techs  # Return all found technologies
     except Exception:
         return []
 
@@ -291,7 +304,7 @@ This section showcases all {cat_name.lower()} projects with their documentation 
             tech_tags = ""
             if project["technologies"]:
                 tech_tags = "\n   ".join(
-                    [f":bdg-secondary:`{tech}`" for tech in project["technologies"][:4]]
+                    [f":bdg-secondary:`{tech}`" for tech in project["technologies"]]
                 )
                 if tech_tags:
                     tech_tags = f"\n   \n   {tech_tags}"
@@ -353,40 +366,40 @@ This section showcases all {cat_name.lower()} projects with their documentation 
         print(f"Generated category page: {cat_file.name}")
 
 
-def get_readme_preview(readme_path: Path, max_lines: int = 10) -> str:
-    """Get a preview of the README content (first few meaningful lines)."""
+def get_readme_preview(readme_path: Path, max_lines: int = 25) -> str:
+    """Get a comprehensive preview of the README content."""
     try:
         with open(readme_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         preview_lines = []
         code_block = False
+        line_count = 0
 
-        for line in lines[
-            : max_lines + 5
-        ]:  # Read a bit more to find good stopping point
+        for line in lines:
             line = line.rstrip()
 
             # Track code blocks
             if line.startswith("```"):
                 code_block = not code_block
+                preview_lines.append(line)
                 continue
 
-            # Skip if we're in a code block or line is just formatting
-            if code_block or line.startswith("#") or not line.strip():
+            # Skip title lines only
+            if line.startswith("# ") and line_count == 0:
+                line_count += 1
                 continue
 
-            preview_lines.append(line)
+            # Include all other content
+            if line.strip():
+                preview_lines.append(line)
+                line_count += 1
 
-            # Stop at a good breaking point
-            if len(preview_lines) >= max_lines:
+            # Stop at reasonable length but allow more content
+            if line_count >= max_lines:
                 break
 
-        preview = "\n".join(preview_lines[:max_lines])
-        if len(lines) > max_lines:
-            preview += "\n\n*... (view full documentation for complete details)*"
-
-        return preview
+        return "\n".join(preview_lines)
     except Exception:
         return "*Preview not available - view full documentation for details.*"
 

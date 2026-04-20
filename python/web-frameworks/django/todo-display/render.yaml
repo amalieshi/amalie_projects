@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: django-todo-display
+    env: python
+    plan: free
+    rootDir: django/todo-display
+    buildCommand: "./build.sh"
+    startCommand: "./start.sh"
+    healthCheckPath: "/health/"
+    envVars:
+      - key: RENDER
+        value: "1"
+      - key: DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+    domains:
+      - todo-list-6ldf.onrender.com

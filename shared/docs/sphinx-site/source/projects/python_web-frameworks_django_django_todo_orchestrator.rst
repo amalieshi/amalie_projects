@@ -4,7 +4,7 @@ Todo API Orchestrator
 
 **📂 Project Path**: `python/web-frameworks/django/todo-orchestrator/`
 
-**Technologies:** FastAPI • Django • Python
+**Technologies:** Django • FastAPI • Python • Testing
 
 
 .. include:: ../../../../../python/web-frameworks/django/todo-orchestrator/README.md

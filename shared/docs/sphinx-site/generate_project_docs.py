@@ -10,26 +10,64 @@ from pathlib import Path
 import re
 
 
+def discover_project_directories(root_path: Path) -> list[str]:
+    """Automatically discover project directories that contain README files."""
+    project_dirs = []
+
+    # Define top-level categories to scan
+    top_level_dirs = [
+        "python",
+        "csharp",
+        "frontend",
+        "machine-learning",
+        "fullstack-projects",
+        "experiments",
+    ]
+
+    for top_dir in top_level_dirs:
+        top_path = root_path / top_dir
+        if top_path.exists():
+            # For python directory, include ALL subdirectories (not just those with READMEs)
+            if top_dir == "python":
+                for item in top_path.iterdir():
+                    if item.is_dir() and not item.name.startswith("."):
+                        project_dirs.append(f"{top_dir}/{item.name}")
+            else:
+                # For other directories, only include if they have README files
+                for item in top_path.iterdir():
+                    if item.is_dir():
+                        # Check if this subdirectory or its children have README files
+                        has_readme = False
+
+                        # Check immediate subdirectory
+                        if (item / "README.md").exists():
+                            has_readme = True
+
+                        # Check nested subdirectories (one level deep)
+                        if not has_readme:
+                            for nested_item in item.iterdir():
+                                if (
+                                    nested_item.is_dir()
+                                    and (nested_item / "README.md").exists()
+                                ):
+                                    has_readme = True
+                                    break
+
+                        # Add to project_dirs if it has README files
+                        if has_readme:
+                            project_dirs.append(f"{top_dir}/{item.name}")
+
+    # Sort for consistent ordering
+    return sorted(project_dirs)
+
+
 def find_project_readmes(root_path: Path) -> list[dict]:
     """Find all README files in project directories."""
     readmes = []
 
-    # Define project directories to scan
-    project_dirs = [
-        "python/web-frameworks",
-        "python/data-science",
-        "python/utilities",
-        "csharp/console-apps",
-        "csharp/desktop-apps",
-        "csharp/web-development",
-        "frontend/react",
-        "frontend/vue",
-        "frontend/vanilla-js",
-        "machine-learning/pytorch",
-        "machine-learning/tensorflow",
-        "machine-learning/scikit-learn",
-        "fullstack-projects",
-    ]
+    # Automatically discover project directories
+    project_dirs = discover_project_directories(root_path)
+    print(f"Discovered project directories: {project_dirs}")
 
     for project_dir in project_dirs:
         full_path = root_path / project_dir
@@ -162,46 +200,89 @@ def extract_project_description(readme_path: Path) -> str:
 
 
 def extract_project_technologies(readme_path: Path) -> list[str]:
-    """Extract technologies/tech stack from README."""
+    """Extract technologies/tech stack from README with deduplication and priority handling."""
     try:
         with open(readme_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
-        # Common technology keywords to look for
+        # Technology patterns with priority (higher priority overrides lower)
         tech_patterns = {
-            "fastapi": "FastAPI",
-            "django": "Django",
-            "flask": "Flask",
-            "react": "React",
-            "vue": "Vue.js",
-            "angular": "Angular",
-            "typescript": "TypeScript",
-            "javascript": "JavaScript",
-            "python": "Python",
-            "c#": "C#",
-            "aspnet": "ASP.NET",
-            "blazor": "Blazor",
-            "wpf": "WPF",
-            "maui": "MAUI",
-            "pytorch": "PyTorch",
-            "tensorflow": "TensorFlow",
-            "scikit-learn": "Scikit-learn",
-            "pandas": "Pandas",
-            "numpy": "NumPy",
-            "docker": "Docker",
-            "kubernetes": "Kubernetes",
-            "postgresql": "PostgreSQL",
-            "mongodb": "MongoDB",
-            "redis": "Redis",
-            "sqlite": "SQLite",
+            # Web Frameworks (high priority)
+            "fastapi": ("FastAPI", 10),
+            "django": ("Django", 10),
+            "flask": ("Flask", 10),
+            # Frontend Frameworks
+            "react": ("React", 10),
+            "vue": ("Vue.js", 10),
+            "angular": ("Angular", 10),
+            # Languages
+            "typescript": ("TypeScript", 8),
+            "javascript": ("JavaScript", 8),
+            "python": ("Python", 8),
+            "c#": ("C#", 8),
+            # .NET Technologies
+            "aspnet": ("ASP.NET", 9),
+            "blazor": ("Blazor", 9),
+            "wpf": ("WPF", 9),
+            "maui": ("MAUI", 9),
+            ".net": (".NET", 8),
+            # ML/Data Science
+            "pytorch": ("PyTorch", 9),
+            "tensorflow": ("TensorFlow", 9),
+            "scikit-learn": ("Scikit-learn", 9),
+            "pandas": ("Pandas", 8),
+            "numpy": ("NumPy", 8),
+            # Infrastructure
+            "docker": ("Docker", 7),
+            "kubernetes": ("Kubernetes", 7),
+            # Databases
+            "postgresql": ("PostgreSQL", 7),
+            "mongodb": ("MongoDB", 7),
+            "redis": ("Redis", 7),
+            "sqlite": ("SQLite", 7),
+            # Testing (specific wins over general)
+            "pywinauto": ("PyWinAuto", 10),
+            "ui automation": ("UI Automation", 9),
+            "performance testing": ("Performance Testing", 9),
+            "pytest": ("PyTest", 8),
+            "selenium": ("Selenium", 8),
+            "test automation": ("Test Automation", 7),
+            "automation": ("Automation", 6),
+            "testing": ("Testing", 5),  # Most general, lowest priority
         }
 
-        found_techs = []
-        for pattern, display_name in tech_patterns.items():
-            if pattern in content:
-                found_techs.append(display_name)
+        found_techs = {}  # Use dict to handle priorities
 
-        return found_techs  # Return all found technologies
+        # Find all matching technologies
+        for pattern, (display_name, priority) in tech_patterns.items():
+            if pattern in content:
+                # Keep highest priority version
+                if (
+                    display_name not in found_techs
+                    or found_techs[display_name] < priority
+                ):
+                    found_techs[display_name] = priority
+
+        # Handle overlapping categories - remove less specific when more specific exists
+        final_techs = set(found_techs.keys())
+
+        # Remove general "Testing" if specific testing types exist
+        if any(
+            tech in final_techs
+            for tech in [
+                "PyTest",
+                "Performance Testing",
+                "UI Automation",
+                "Test Automation",
+            ]
+        ):
+            final_techs.discard("Testing")
+
+        # Remove general "Automation" if specific automation types exist
+        if any(tech in final_techs for tech in ["Test Automation", "UI Automation"]):
+            final_techs.discard("Automation")
+
+        return sorted(list(final_techs))  # Return deduplicated, sorted list
     except Exception:
         return []
 
@@ -385,7 +466,7 @@ This section showcases all {cat_name.lower()} projects with their documentation 
 
 
 def get_readme_preview(readme_path: Path, max_lines: int = 25) -> str:
-    """Get a comprehensive preview of the README content."""
+    """Get a comprehensive preview of the README content, converting markdown to RST."""
     try:
         with open(readme_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
@@ -397,14 +478,43 @@ def get_readme_preview(readme_path: Path, max_lines: int = 25) -> str:
         for line in lines:
             line = line.rstrip()
 
-            # Track code blocks
+            # Track code blocks and convert to RST syntax
             if line.startswith("```"):
                 code_block = not code_block
-                preview_lines.append(line)
+                if not code_block:  # Closing code block
+                    # Don't add anything - RST code blocks end with unindented content
+                    continue
+                else:  # Opening code block
+                    preview_lines.append("")
+                    preview_lines.append(".. code-block:: text")
+                    preview_lines.append("")
+                continue
+
+            # Inside code block - indent content
+            if code_block:
+                preview_lines.append(f"   {line}")
                 continue
 
             # Skip title lines only
             if line.startswith("# ") and line_count == 0:
+                line_count += 1
+                continue
+
+            # Convert markdown headers to RST format
+            if line.startswith("## "):
+                header_text = line[3:]  # Remove "## "
+                preview_lines.append("")
+                preview_lines.append(header_text)
+                preview_lines.append("-" * len(header_text))
+                preview_lines.append("")
+                line_count += 1
+                continue
+            elif line.startswith("### "):
+                header_text = line[4:]  # Remove "### "
+                preview_lines.append("")
+                preview_lines.append(header_text)
+                preview_lines.append("^" * len(header_text))
+                preview_lines.append("")
                 line_count += 1
                 continue
 
@@ -433,7 +543,6 @@ def update_projects_index(
 
     # Group readmes by main category (not sub-categories)
     main_categories = {}
-    individual_projects = []
 
     for readme in readmes:
         category = readme["category"]
@@ -447,14 +556,19 @@ def update_projects_index(
             main_category = (
                 category.split("_")[0] + "_" + category.split("_")[1]
             )  # e.g., "python_web-frameworks"
-            if main_category not in main_categories:
-                main_categories[main_category] = []
 
-            # Check if this is a main category (like django folder) or individual project
-            if readme["name"].lower() in ["django", "fastapi", "react", "vue"]:
+            # Only include main framework/technology categories, not standalone projects
+            if readme["name"].lower() in [
+                "django",
+                "fastapi",
+                "react",
+                "vue",
+                "web-frameworks",
+            ]:
+                if main_category not in main_categories:
+                    main_categories[main_category] = []
                 main_categories[main_category].append(readme)
-            else:
-                individual_projects.append(readme)
+            # Skip standalone projects - they will be embedded in technology sections
 
     # Generate hierarchical toctree
     toctree_content = """
@@ -476,13 +590,7 @@ def update_projects_index(
     # Always include C# documentation (manually created) - C# projects will be nested under this
     toctree_content += "   csharp\n"
 
-    # Note: C# projects are NOT added here as they are included in csharp/index.md toctree
-
-    # Add any standalone individual projects
-    if individual_projects:
-        for project in individual_projects:
-            project_slug = f"{project['category']}_{project['slug']}"
-            toctree_content += f"   {project_slug}\n"
+    # Note: Standalone individual projects are NOT added here as they are embedded in technology sections
 
     # Add visual category grid (only main categories)
     toctree_content += f"""
@@ -509,9 +617,10 @@ def update_projects_index(
     }
 
     # Always include C# in the grid (manually created documentation)
-    all_categories = list(categories) + ["csharp"]
+    # Only include main framework/technology categories, not standalone projects
+    grid_categories = list(main_categories.keys()) + ["csharp"]
 
-    for category in sorted(set(all_categories)):
+    for category in sorted(set(grid_categories)):
         display_name = category_display_names.get(
             category, category.replace("_", " ").title()
         )
@@ -544,6 +653,105 @@ def update_projects_index(
         f.write(content)
 
     print(f"Updated: {projects_index_path}")
+
+
+def update_python_index(readmes: list[dict], python_index_path: Path, python_dir: Path):
+    """Update the python/index.md file to maintain proper hierarchy matching project structure."""
+
+    # Find Python projects
+    python_projects = [
+        readme for readme in readmes if readme["category"].startswith("python_")
+    ]
+
+    if not python_projects:
+        return
+
+    # Separate projects into hierarchy levels
+    standalone_projects = []  # Top-level projects like automation-testing
+    web_framework_projects = []  # Projects under web-frameworks
+
+    for project in python_projects:
+        category_base = project["category"].replace("python_", "")
+
+        if "web-frameworks" in category_base:
+            # This is a web framework subproject
+            web_framework_projects.append(project)
+        else:
+            # This is a standalone top-level project
+            standalone_projects.append(project)
+
+            # Create individual page only for standalone projects
+            project_filename = f"{category_base.replace('_', '-')}"
+            project_file = python_dir / f"{project_filename}.md"
+
+            # Generate project markdown content
+            tech_badges = ""
+            if project["technologies"]:
+                tech_list = " • ".join(project["technologies"])
+                tech_badges = f"\n**Technologies:** {tech_list}\n"
+
+            project_md_content = f"""# {project['title']}
+
+{project['description']}{tech_badges}
+
+```{{include}} {project['path']}
+:parser: myst_parser.sphinx_
+```
+
+---
+
+[← Back to Python Development](index.md)
+"""
+
+            with open(project_file, "w", encoding="utf-8") as f:
+                f.write(project_md_content)
+
+            print(f"Generated python project file: {project_file.name}")
+
+    # Read existing python index content
+    with open(python_index_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Build proper hierarchical toctree
+    toctree_entries = []
+
+    # Add main technology categories (these contain hierarchies)
+    if web_framework_projects:
+        toctree_entries.append("web-frameworks")
+
+    # Add standalone projects
+    for project in standalone_projects:
+        project_filename = (
+            f"{project['category'].replace('python_', '').replace('_', '-')}"
+        )
+        toctree_entries.append(project_filename)
+
+    # Update toctree in content - remove individual web framework entries
+    import re
+
+    toctree_pattern = r"```{toctree}\n:maxdepth: 1\n:titlesonly:\n\n(.*?)```"
+    toctree_content = "\n".join(toctree_entries)
+    replacement = (
+        f"```{{toctree}}\n:maxdepth: 1\n:titlesonly:\n\n{toctree_content}\n```"
+    )
+
+    if re.search(toctree_pattern, content, re.DOTALL):
+        content = re.sub(toctree_pattern, replacement, content, flags=re.DOTALL)
+    else:
+        # Add toctree if it doesn't exist
+        content += f"\n\n{replacement}"
+
+    # Write updated content
+    with open(python_index_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    print(
+        f"Updated Python index with proper hierarchy: {len(toctree_entries)} main entries"
+    )
+    print(
+        f"- Web framework projects: {len(web_framework_projects)} (nested under web-frameworks)"
+    )
+    print(f"- Standalone projects: {len(standalone_projects)}")
 
 
 def update_csharp_index(readmes: list[dict], csharp_index_path: Path):
@@ -612,6 +820,11 @@ def main():
 
         # Update C# index with discovered C# projects
         update_csharp_index(readmes, sphinx_source / "csharp" / "index.md")
+
+        # Update Python index with discovered Python projects
+        update_python_index(
+            readmes, sphinx_source / "python" / "index.md", sphinx_source / "python"
+        )
 
         print("\nDocumentation generation complete!")
         print("Run 'sphinx-build source build/html' to rebuild documentation.")

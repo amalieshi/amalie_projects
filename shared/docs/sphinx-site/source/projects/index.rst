@@ -73,44 +73,8 @@ The repository is organized by technology stacks to facilitate learning and easy
       
       Explore →
 
-   .. grid-item-card:: Csharp Desktop-Apps Wpf
-      :link: csharp_desktop-apps_wpf
-      :link-type: doc
-      :text-align: center
-      :class-card: category-card
-
-      Explore projects and documentation
-      
-      +++
-      
-      Explore →
-
    .. grid-item-card:: Python Web Frameworks
       :link: python_web-frameworks
-      :link-type: doc
-      :text-align: center
-      :class-card: category-card
-
-      Explore projects and documentation
-      
-      +++
-      
-      Explore →
-
-   .. grid-item-card:: Python Web-Frameworks Django
-      :link: python_web-frameworks_django
-      :link-type: doc
-      :text-align: center
-      :class-card: category-card
-
-      Explore projects and documentation
-      
-      +++
-      
-      Explore →
-
-   .. grid-item-card:: Python Web-Frameworks Fastapi
-      :link: python_web-frameworks_fastapi
       :link-type: doc
       :text-align: center
       :class-card: category-card

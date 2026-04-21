@@ -55,9 +55,8 @@ Welcome to this development portfolio! This site documents projects and technica
    :titlesonly:
 
    WPF Inventory Management <projects/csharp_desktop-apps_wpf_wpf_wpfinventoryapp>
-   Python Web Frameworks <python/web-frameworks>
-   Django Todo Display <python/django-todo-display>
-   Django Todo Orchestrator <python/django-todo-orchestrator>
-   FastAPI Todo Service <python/fastapi-todo-service>
+   Django Todo Display <projects/python_web-frameworks_django_django_todo_display>
+   Django Todo Orchestrator <projects/python_web-frameworks_django_django_todo_orchestrator>
+   FastAPI Todo API <projects/python_web-frameworks_fastapi_fastapi_todo_api>
 
 **Last Updated:** |today|

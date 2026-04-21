@@ -4,7 +4,7 @@ Todo API
 
 **📂 Project Path**: `python/web-frameworks/fastapi/todo-api/`
 
-**Technologies:** FastAPI • Python • SQLite
+**Technologies:** FastAPI • PyTest • Python • SQLite
 
 
 .. include:: ../../../../../python/web-frameworks/fastapi/todo-api/README.md

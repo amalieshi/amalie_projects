@@ -2,7 +2,7 @@
 Todo API
 ========
 
-A robust FastAPI-based todo list API with comprehensive CRUD operations, automatic timestamp tracking, and complete data validation.
+**📂 Project Path**: `python/web-frameworks/fastapi/todo-api/`
 
 **Technologies:** FastAPI • Python • SQLite
 

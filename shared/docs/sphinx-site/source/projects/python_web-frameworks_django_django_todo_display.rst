@@ -2,7 +2,7 @@
 Todo Display
 ============
 
-A clean, intuitive Django web application designed for end users to create, view, and manage their todos in a user-friendly interface. This applicatio...
+**📂 Project Path**: `python/web-frameworks/django/todo-display/`
 
 **Technologies:** FastAPI • Django • Python
 

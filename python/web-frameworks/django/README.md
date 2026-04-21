@@ -238,8 +238,8 @@ These dependencies are required to run the FastAPI Todo List server that this or
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Related Projects
 
-- [FastAPI Todo List API](../fastapi/todo-api/) - The API this orchestrator is designed to test
+- FastAPI Todo List API (../fastapi/todo-api/) - The API this orchestrator is designed to test

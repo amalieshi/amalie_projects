@@ -54,6 +54,7 @@ Welcome to this development portfolio! This site documents projects and technica
    :caption: Featured Projects
    :titlesonly:
 
+   WPF Inventory Management <projects/csharp_desktop-apps_wpf_wpf_wpfinventoryapp>
    Python Web Frameworks <python/web-frameworks>
    Django Todo Display <python/django-todo-display>
    Django Todo Orchestrator <python/django-todo-orchestrator>

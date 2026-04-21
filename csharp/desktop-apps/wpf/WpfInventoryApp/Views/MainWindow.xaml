@@ -5,13 +5,16 @@
         Title="WPF Inventory Management System"
         Height="700"
         Width="1200"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        AutomationProperties.AutomationId="main_window"
+        AutomationProperties.Name="inventory_management_main_window">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
 
-    <Grid>
+    <Grid AutomationProperties.AutomationId="main_content_grid"
+          AutomationProperties.Name="application_main_layout">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -21,30 +24,40 @@
         <!-- Header -->
         <Border Grid.Row="0"
                 Background="#2C3E50"
-                Padding="10">
-            <StackPanel Orientation="Horizontal">
+                Padding="10"
+                AutomationProperties.AutomationId="header_border"
+                AutomationProperties.Name="application_header_section">
+            <StackPanel Orientation="Horizontal"
+                        AutomationProperties.AutomationId="header_content_panel"
+                        AutomationProperties.Name="application_header_content">
                 <TextBlock Text="📦"
-                        FontSize="24"
-                        Margin="0,0,10,0"
-                        VerticalAlignment="Center"/>
+                           FontSize="24"
+                           Margin="0,0,10,0"
+                           VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="app_icon"
+                           AutomationProperties.Name="inventory_app_icon"/>
                 <TextBlock Text="Inventory Management System"
                            Foreground="White"
                            FontSize="20"
                            FontWeight="Bold"
-                           VerticalAlignment="Center"/>
+                           VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="app_title"
+                           AutomationProperties.Name="inventory_management_title"/>
                 <Button Content="🔄 Refresh"
                         Command="{Binding LoadProductsCommand}"
                         Margin="20,0,0,0"
                         Padding="10,5"
                         Background="#3498DB"
                         Foreground="White"
-                        BorderBrush="Transparent"/>
+                        BorderBrush="Transparent"
+                        AutomationProperties.AutomationId="refresh_button"
+                        AutomationProperties.Name="refresh_products_button"/>
             </StackPanel>
         </Border>
 
         <!-- Main Content -->
         <Grid Grid.Row="1"
-                Margin="10">
+              Margin="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="5"/>
@@ -53,8 +66,10 @@
 
             <!-- Product List -->
             <GroupBox Grid.Column="0"
-                    Header="Products"
-                    Padding="5">
+                      Header="Products"
+                      Padding="5"
+                      AutomationProperties.AutomationId="products_groupbox"
+                      AutomationProperties.Name="products_list_section">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -63,29 +78,37 @@
 
                     <!-- Product Actions -->
                     <StackPanel Grid.Row="0"
-                            Orientation="Horizontal"
-                            Margin="0,0,0,10">
+                                Orientation="Horizontal"
+                                Margin="0,0,0,10"
+                                AutomationProperties.AutomationId="product_actions_panel"
+                                AutomationProperties.Name="product_management_buttons_section">
                         <Button Content="➕ Add"
                                 Command="{Binding AddProductCommand}"
                                 Padding="10,5"
                                 Margin="0,0,5,0"
                                 Background="#27AE60"
                                 Foreground="White"
-                                BorderBrush="Transparent"/>
+                                BorderBrush="Transparent"
+                                AutomationProperties.AutomationId="add_product_button"
+                                AutomationProperties.Name="add_new_product_button"/>
                         <Button Content="✏️ Edit"
                                 Command="{Binding EditProductCommand}"
                                 Padding="10,5"
                                 Margin="0,0,5,0"
                                 Background="#F39C12"
                                 Foreground="White"
-                                BorderBrush="Transparent"/>
+                                BorderBrush="Transparent"
+                                AutomationProperties.AutomationId="edit_product_button"
+                                AutomationProperties.Name="edit_selected_product_button"/>
                         <Button Content="🗑️ Delete"
                                 Command="{Binding DeleteProductCommand}"
                                 Padding="10,5"
                                 Margin="0,0,5,0"
                                 Background="#E74C3C"
                                 Foreground="White"
-                                BorderBrush="Transparent"/>
+                                BorderBrush="Transparent"
+                                AutomationProperties.AutomationId="delete_product_button"
+                                AutomationProperties.Name="delete_selected_product_button"/>
                     </StackPanel>
 
                     <!-- Product DataGrid -->
@@ -96,77 +119,156 @@
                               CanUserAddRows="False"
                               SelectionMode="Single"
                               GridLinesVisibility="Horizontal"
-                              AlternatingRowBackground="#F8F9FA">
+                              AlternatingRowBackground="#F8F9FA"
+                              AutomationProperties.AutomationId="products_datagrid"
+                              AutomationProperties.Name="products_list_datagrid">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID"
-                                    Binding="{Binding Id}"
-                                    Width="50"
-                                    IsReadOnly="True"/>
+                                                Binding="{Binding Id}"
+                                                Width="50"
+                                                IsReadOnly="True">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="AutomationProperties.AutomationId"
+                                                Value="id_column_header"/>
+                                        <Setter Property="AutomationProperties.Name"
+                                                Value="product_id_column"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                            </DataGridTextColumn>
                             <DataGridTextColumn Header="Name"
-                                    Binding="{Binding Name}"
-                                    Width="*"
-                                    IsReadOnly="True"/>
+                                                Binding="{Binding Name}"
+                                                Width="*"
+                                                IsReadOnly="True">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="AutomationProperties.AutomationId"
+                                                Value="name_column_header"/>
+                                        <Setter Property="AutomationProperties.Name"
+                                                Value="product_name_column"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                            </DataGridTextColumn>
                             <DataGridTextColumn Header="SKU"
-                                    Binding="{Binding SKU}"
-                                    Width="100"
-                                    IsReadOnly="True"/>
+                                                Binding="{Binding SKU}"
+                                                Width="100"
+                                                IsReadOnly="True">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="AutomationProperties.AutomationId"
+                                                Value="sku_column_header"/>
+                                        <Setter Property="AutomationProperties.Name"
+                                                Value="product_sku_column"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                            </DataGridTextColumn>
                             <DataGridTextColumn Header="Quantity"
-                                    Binding="{Binding Quantity}"
-                                    Width="80"
-                                    IsReadOnly="True"/>
+                                                Binding="{Binding Quantity}"
+                                                Width="80"
+                                                IsReadOnly="True">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="AutomationProperties.AutomationId"
+                                                Value="quantity_column_header"/>
+                                        <Setter Property="AutomationProperties.Name"
+                                                Value="product_quantity_column"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                            </DataGridTextColumn>
                             <DataGridTextColumn Header="Price"
-                                    Binding="{Binding Price, StringFormat=C}"
-                                    Width="80"
-                                    IsReadOnly="True"/>
+                                                Binding="{Binding Price, StringFormat=C}"
+                                                Width="80"
+                                                IsReadOnly="True">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="AutomationProperties.AutomationId"
+                                                Value="price_column_header"/>
+                                        <Setter Property="AutomationProperties.Name"
+                                                Value="product_price_column"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                            </DataGridTextColumn>
                             <DataGridTextColumn Header="Created"
-                                    Binding="{Binding CreatedAt, StringFormat=MM/dd/yyyy}"
-                                    Width="100"
-                                    IsReadOnly="True"/>
+                                                Binding="{Binding CreatedAt, StringFormat=MM/dd/yyyy}"
+                                                Width="100"
+                                                IsReadOnly="True">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="AutomationProperties.AutomationId"
+                                                Value="created_column_header"/>
+                                        <Setter Property="AutomationProperties.Name"
+                                                Value="product_created_date_column"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                            </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </GroupBox>
 
             <GridSplitter Grid.Column="1"
-                    Width="5"
-                    Background="#BDC3C7"
-                    HorizontalAlignment="Stretch"/>
+                          Width="5"
+                          Background="#BDC3C7"
+                          HorizontalAlignment="Stretch"
+                          AutomationProperties.AutomationId="main_grid_splitter"
+                          AutomationProperties.Name="resizable_panel_splitter"/>
 
             <!-- Product Form -->
             <GroupBox Grid.Column="2"
-                    Header="{Binding FormTitle}"
-                    Padding="10">
-                <StackPanel>
+                      Header="{Binding FormTitle}"
+                      Padding="10"
+                      AutomationProperties.AutomationId="product_form_groupbox"
+                      AutomationProperties.Name="product_details_form_section">
+                <StackPanel AutomationProperties.AutomationId="product_form_panel"
+                            AutomationProperties.Name="product_details_input_form">
                     <!-- Product Name -->
                     <Label Content="Product Name:"
-                            FontWeight="Bold"/>
+                           FontWeight="Bold"
+                           AutomationProperties.AutomationId="product_name_label"
+                           AutomationProperties.Name="product_name_field_label"/>
                     <TextBox Text="{Binding CurrentProduct.Name, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,10"
-                            Padding="5"/>
+                             Padding="5"
+                             AutomationProperties.AutomationId="product_name_textbox"
+                             AutomationProperties.Name="product_name_input_field"
+                             AutomationProperties.LabeledBy="{Binding RelativeSource={RelativeSource AncestorType=StackPanel}, Path=Children[0]}"/>
 
                     <!-- SKU -->
                     <Label Content="SKU:"
-                            FontWeight="Bold"/>
+                           FontWeight="Bold"
+                           AutomationProperties.AutomationId="product_sku_label"
+                           AutomationProperties.Name="product_sku_field_label"/>
                     <TextBox Text="{Binding CurrentProduct.SKU, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,10"
-                            Padding="5"/>
+                             Padding="5"
+                             AutomationProperties.AutomationId="product_sku_textbox"
+                             AutomationProperties.Name="product_sku_input_field"/>
 
                     <!-- Quantity -->
                     <Label Content="Quantity:"
-                            FontWeight="Bold"/>
+                           FontWeight="Bold"
+                           AutomationProperties.AutomationId="product_quantity_label"
+                           AutomationProperties.Name="product_quantity_field_label"/>
                     <TextBox Text="{Binding CurrentProduct.Quantity, UpdateSourceTrigger=PropertyChanged}"
                              Margin="0,0,0,10"
-                            Padding="5"/>
+                             Padding="5"
+                             AutomationProperties.AutomationId="product_quantity_textbox"
+                             AutomationProperties.Name="product_quantity_input_field"/>
 
                     <!-- Price -->
                     <Label Content="Price ($):"
-                            FontWeight="Bold"/>
+                           FontWeight="Bold"
+                           AutomationProperties.AutomationId="product_price_label"
+                           AutomationProperties.Name="product_price_field_label"/>
                     <TextBox Text="{Binding CurrentProduct.Price, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"
                              Margin="0,0,0,20"
-                            Padding="5"/>
+                             Padding="5"
+                             AutomationProperties.AutomationId="product_price_textbox"
+                             AutomationProperties.Name="product_price_input_field"/>
 
                     <!-- Form Actions -->
-                    <StackPanel>
+                    <StackPanel AutomationProperties.AutomationId="form_actions_panel"
+                                AutomationProperties.Name="product_form_action_buttons">
                         <!-- Add/Update Button -->
                         <Button Content="💾 Save"
                                 Command="{Binding AddProductCommand}"
@@ -174,14 +276,16 @@
                                 Margin="0,0,0,5"
                                 Background="#27AE60"
                                 Foreground="White"
-                                BorderBrush="Transparent">
+                                BorderBrush="Transparent"
+                                AutomationProperties.AutomationId="save_product_button"
+                                AutomationProperties.Name="save_new_product_button">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="Visibility"
                                             Value="Visible"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsEditMode}"
-                                                Value="True">
+                                                     Value="True">
                                             <Setter Property="Visibility"
                                                     Value="Collapsed"/>
                                         </DataTrigger>
@@ -196,14 +300,16 @@
                                 Margin="0,0,0,5"
                                 Background="#3498DB"
                                 Foreground="White"
-                                BorderBrush="Transparent">
+                                BorderBrush="Transparent"
+                                AutomationProperties.AutomationId="update_product_button"
+                                AutomationProperties.Name="update_existing_product_button">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="Visibility"
                                             Value="Collapsed"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsEditMode}"
-                                                Value="True">
+                                                     Value="True">
                                             <Setter Property="Visibility"
                                                     Value="Visible"/>
                                         </DataTrigger>
@@ -219,14 +325,16 @@
                                 Margin="0,0,0,5"
                                 Background="#95A5A6"
                                 Foreground="White"
-                                BorderBrush="Transparent">
+                                BorderBrush="Transparent"
+                                AutomationProperties.AutomationId="cancel_edit_button"
+                                AutomationProperties.Name="cancel_product_edit_button">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="Visibility"
                                             Value="Collapsed"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsEditMode}"
-                                                Value="True">
+                                                     Value="True">
                                             <Setter Property="Visibility"
                                                     Value="Visible"/>
                                         </DataTrigger>
@@ -241,14 +349,16 @@
                                 Padding="10,8"
                                 Background="#E74C3C"
                                 Foreground="White"
-                                BorderBrush="Transparent">
+                                BorderBrush="Transparent"
+                                AutomationProperties.AutomationId="clear_form_button"
+                                AutomationProperties.Name="clear_product_form_button">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="Visibility"
                                             Value="Visible"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsEditMode}"
-                                                Value="True">
+                                                     Value="True">
                                             <Setter Property="Visibility"
                                                     Value="Collapsed"/>
                                         </DataTrigger>
@@ -263,20 +373,35 @@
 
         <!-- Status Bar -->
         <StatusBar Grid.Row="2"
-                Height="25">
-            <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}"/>
+                   Height="25"
+                   AutomationProperties.AutomationId="status_bar"
+                   AutomationProperties.Name="application_status_bar">
+            <StatusBarItem AutomationProperties.AutomationId="status_message_item"
+                           AutomationProperties.Name="status_message_section">
+                <TextBlock Text="{Binding StatusMessage}"
+                           AutomationProperties.AutomationId="status_message_text"
+                           AutomationProperties.Name="application_status_message"/>
             </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Right">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Total Products: "/>
+            <StatusBarItem HorizontalAlignment="Right"
+                           AutomationProperties.AutomationId="status_info_item"
+                           AutomationProperties.Name="status_information_section">
+                <StackPanel Orientation="Horizontal"
+                            AutomationProperties.AutomationId="product_count_panel"
+                            AutomationProperties.Name="product_count_display_panel">
+                    <TextBlock Text="Total Products: "
+                               AutomationProperties.AutomationId="product_count_label"
+                               AutomationProperties.Name="total_products_label"/>
                     <TextBlock Text="{Binding Products.Count}"
-                            FontWeight="Bold"/>
+                               FontWeight="Bold"
+                               AutomationProperties.AutomationId="product_count_text"
+                               AutomationProperties.Name="total_products_count"/>
                     <ProgressBar Width="100"
                                  Height="15"
                                  Margin="10,0,0,0"
                                  IsIndeterminate="{Binding IsLoading}"
-                                 Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                 Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                 AutomationProperties.AutomationId="loading_progress_bar"
+                                 AutomationProperties.Name="application_loading_progress"/>
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

@@ -10,9 +10,10 @@ My C# development journey focuses on building robust, scalable applications usin
 - Entity Framework Core
 - JWT Authentication & Authorization
 
-### **Desktop Applications**
+### **Desktop Applications**  
+- **[WPF Inventory Management System](../projects/csharp_desktop-apps_wpf_wpf_wpfinventoryapp.rst)** - Enterprise MVVM application with Entity Framework
 - WPF with MVVM pattern
-- WinUI 3 modern apps
+- WinUI 3 modern apps  
 - .NET MAUI cross-platform
 - Local database integration
 
@@ -184,3 +185,10 @@ MaterialDesignThemes
 ---
 
 **Want to explore the code?** Check out my C# projects in the [csharp/](https://github.com/yourusername/amalie_projects/tree/main/csharp) folder of my repository.
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+../projects/csharp_desktop-apps_wpf_wpf_wpfinventoryapp
+```

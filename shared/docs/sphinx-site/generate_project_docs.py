@@ -63,10 +63,19 @@ def find_project_readmes(root_path: Path) -> list[dict]:
                                 .replace(" ", "_"),
                             }
                         )
-                    
+
                     # Special handling for multi-project directories (like django)
                     # Look for nested projects within directories that have their own README
-                    if item.name.lower() in ['django', 'fastapi', 'react', 'vue', 'mlflow']:  # Add more as needed
+                    if item.name.lower() in [
+                        "django",
+                        "fastapi",
+                        "react",
+                        "vue",
+                        "mlflow",
+                        "wpf",
+                        "winui",
+                        "maui",
+                    ]:  # Add more as needed
                         for nested_item in item.iterdir():
                             if nested_item.is_dir():
                                 nested_readme_path = nested_item / "README.md"
@@ -74,10 +83,11 @@ def find_project_readmes(root_path: Path) -> list[dict]:
                                     # Calculate relative path for nested project
                                     nested_rel_path = os.path.relpath(
                                         nested_readme_path,
-                                        root_path / "shared/docs/sphinx-site/source/projects",
+                                        root_path
+                                        / "shared/docs/sphinx-site/source/projects",
                                     )
                                     nested_rel_path = nested_rel_path.replace("\\", "/")
-                                    
+
                                     readmes.append(
                                         {
                                             "name": f"{item.name}-{nested_item.name}",
@@ -85,14 +95,20 @@ def find_project_readmes(root_path: Path) -> list[dict]:
                                             "category": f"{project_dir.replace('/', '_')}_{item.name.lower()}",
                                             "path": nested_rel_path,
                                             "full_path": nested_readme_path,
-                                            "title": create_title_from_readme(nested_readme_path),
-                                            "description": extract_project_description(nested_readme_path),
+                                            "title": create_title_from_readme(
+                                                nested_readme_path
+                                            ),
+                                            "description": extract_project_description(
+                                                nested_readme_path
+                                            ),
                                             "technologies": extract_project_technologies(
                                                 nested_readme_path
                                             ),
-                                            "slug": f"{item.name.lower()}_{nested_item.name.lower()}"
-                                            .replace("-", "_")
-                                            .replace(" ", "_"),
+                                            "slug": f"{item.name.lower()}_{nested_item.name.lower()}".replace(
+                                                "-", "_"
+                                            ).replace(
+                                                " ", "_"
+                                            ),
                                         }
                                     )
 
@@ -123,21 +139,21 @@ def extract_project_description(readme_path: Path) -> str:
             if line and not line.startswith("#") and not line.startswith("```"):
                 # Return complete sentence(s) - find end of sentence or reasonable break
                 description = line
-                
+
                 # If line is very long (>300 chars), try to break at sentence end
                 if len(description) > 300:
                     # Look for sentence endings within first 250 chars
-                    sentence_ends = ['.', '!', '?']
+                    sentence_ends = [".", "!", "?"]
                     for end_char in sentence_ends:
                         end_pos = description.find(end_char, 100, 250)
                         if end_pos != -1:
-                            description = description[:end_pos + 1]
+                            description = description[: end_pos + 1]
                             break
                     else:
                         # If no sentence end found, truncate at word boundary
                         words = description[:250].split()
-                        description = ' '.join(words[:-1]) + "..."
-                
+                        description = " ".join(words[:-1]) + "..."
+
                 return description
 
         return "A project showcasing development skills and best practices."
@@ -196,15 +212,15 @@ def generate_project_rst(readmes: list[dict], output_dir: Path):
     # Group readmes by category
     categories = {}
     all_readmes_by_category = {}  # Include nested projects for category pages
-    
+
     for readme in readmes:
         cat = readme["category"]
         if cat not in categories:
             categories[cat] = []
         categories[cat].append(readme)
-        
+
         # Also group by main category for nested hierarchies
-        main_cat = cat.split('_')[0] + '_' + cat.split('_')[1] if '_' in cat else cat
+        main_cat = cat.split("_")[0] + "_" + cat.split("_")[1] if "_" in cat else cat
         if main_cat not in all_readmes_by_category:
             all_readmes_by_category[main_cat] = []
         all_readmes_by_category[main_cat].append(readme)
@@ -244,9 +260,9 @@ def generate_project_rst(readmes: list[dict], output_dir: Path):
     # Generate category overview pages with project cards
     for category, projects in categories.items():
         # Skip nested categories - they'll be included in main category pages
-        if any('parent_category' in p for p in projects):
+        if any("parent_category" in p for p in projects):
             continue
-            
+
         cat_name = category.replace("_", " ").title()
         cat_file = output_dir / f"{category}.rst"
 
@@ -268,7 +284,9 @@ This section showcases all {cat_name.lower()} projects with their documentation 
         nested_projects = []
         main_category_key = category
         for readme in readmes:
-            if 'parent_category' in readme and readme['category'].startswith(category + '_'):
+            if "parent_category" in readme and readme["category"].startswith(
+                category + "_"
+            ):
                 nested_projects.append(readme)
 
         # Add toctree for nested projects if they exist
@@ -290,7 +308,7 @@ This section showcases all {cat_name.lower()} projects with their documentation 
 
         # Generate project cards (include both main projects and nested ones)
         all_projects = projects + nested_projects
-        
+
         rst_content += f"""
 
 .. grid:: 1 2 2 2
@@ -300,7 +318,7 @@ This section showcases all {cat_name.lower()} projects with their documentation 
 """
 
         for project in all_projects:
-            project_slug = f"{category}_{project['slug']}"
+            project_slug = f"{project['category']}_{project['slug']}"
             tech_tags = ""
             if project["technologies"]:
                 tech_tags = "\n   ".join(
@@ -413,25 +431,27 @@ def update_projects_index(
     with open(projects_index_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Group readmes by main category (not sub-categories)  
+    # Group readmes by main category (not sub-categories)
     main_categories = {}
     individual_projects = []
-    
+
     for readme in readmes:
-        category = readme['category']
-        
+        category = readme["category"]
+
         # Check if this is a nested project (has parent_category)
-        if 'parent_category' in readme:
+        if "parent_category" in readme:
             # This is a nested project - don't show it at top level
             continue
         else:
             # This is either a main category or an individual project
-            main_category = category.split('_')[0] + '_' + category.split('_')[1]  # e.g., "python_web-frameworks"
+            main_category = (
+                category.split("_")[0] + "_" + category.split("_")[1]
+            )  # e.g., "python_web-frameworks"
             if main_category not in main_categories:
                 main_categories[main_category] = []
-            
+
             # Check if this is a main category (like django folder) or individual project
-            if readme['name'].lower() in ['django', 'fastapi', 'react', 'vue']:
+            if readme["name"].lower() in ["django", "fastapi", "react", "vue"]:
                 main_categories[main_category].append(readme)
             else:
                 individual_projects.append(readme)
@@ -453,6 +473,11 @@ def update_projects_index(
     for main_category in sorted(main_categories.keys()):
         toctree_content += f"   {main_category}\n"
 
+    # Always include C# documentation (manually created) - C# projects will be nested under this
+    toctree_content += "   csharp\n"
+
+    # Note: C# projects are NOT added here as they are included in csharp/index.md toctree
+
     # Add any standalone individual projects
     if individual_projects:
         for project in individual_projects:
@@ -472,6 +497,7 @@ def update_projects_index(
         "python_web-frameworks": "Python Web Frameworks",
         "python_data-science": "Python Data Science",
         "python_utilities": "Python Utilities",
+        "csharp": "C# Projects",
         "csharp_console-apps": "C# Console Apps",
         "csharp_desktop-apps": "C# Desktop Apps",
         "csharp_web-development": "C# Web Development",
@@ -482,7 +508,10 @@ def update_projects_index(
         "fullstack-projects": "Full-Stack Projects",
     }
 
-    for category in sorted(categories):
+    # Always include C# in the grid (manually created documentation)
+    all_categories = list(categories) + ["csharp"]
+
+    for category in sorted(set(all_categories)):
         display_name = category_display_names.get(
             category, category.replace("_", " ").title()
         )
@@ -517,6 +546,48 @@ def update_projects_index(
     print(f"Updated: {projects_index_path}")
 
 
+def update_csharp_index(readmes: list[dict], csharp_index_path: Path):
+    """Update the csharp/index.md file to include discovered C# projects."""
+
+    # Find C# projects
+    csharp_projects = [
+        readme for readme in readmes if readme["category"].startswith("csharp_")
+    ]
+
+    if not csharp_projects:
+        return
+
+    # Read existing content
+    with open(csharp_index_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Generate toctree entries for C# projects
+    toctree_entries = ""
+    for project in csharp_projects:
+        project_slug = f"{project['category']}_{project['slug']}"
+        toctree_entries += f"../projects/{project_slug}\n"
+
+    # Update toctree in content
+    import re
+
+    toctree_pattern = r"```{toctree}\n:maxdepth: 2\n:hidden:\n\n(.*?)```"
+    replacement = (
+        f"```{{toctree}}\n:maxdepth: 2\n:hidden:\n\n{toctree_entries.strip()}\n```"
+    )
+
+    if re.search(toctree_pattern, content, re.DOTALL):
+        content = re.sub(toctree_pattern, replacement, content, flags=re.DOTALL)
+    else:
+        # Add toctree if it doesn't exist (shouldn't happen after our fix)
+        content += f"\n\n{replacement}"
+
+    # Write updated content
+    with open(csharp_index_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    print(f"Updated C# index with {len(csharp_projects)} project(s)")
+
+
 def main():
     """Main execution function."""
     # Get paths
@@ -538,6 +609,9 @@ def main():
         # Update main projects index
         categories = list(set(readme["category"] for readme in readmes))
         update_projects_index(categories, readmes, projects_dir / "index.rst")
+
+        # Update C# index with discovered C# projects
+        update_csharp_index(readmes, sphinx_source / "csharp" / "index.md")
 
         print("\nDocumentation generation complete!")
         print("Run 'sphinx-build source build/html' to rebuild documentation.")

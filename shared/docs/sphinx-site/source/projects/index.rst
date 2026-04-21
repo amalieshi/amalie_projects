@@ -54,11 +54,36 @@ The repository is organized by technology stacks to facilitate learning and easy
    :hidden:
    
    python_web-frameworks
+   csharp
 
 
 .. grid:: 1 2 2 3
    :gutter: 3
    :margin: 3
+
+   .. grid-item-card:: C# Projects
+      :link: csharp
+      :link-type: doc
+      :text-align: center
+      :class-card: category-card
+
+      Explore projects and documentation
+      
+      +++
+      
+      Explore →
+
+   .. grid-item-card:: Csharp Desktop-Apps Wpf
+      :link: csharp_desktop-apps_wpf
+      :link-type: doc
+      :text-align: center
+      :class-card: category-card
+
+      Explore projects and documentation
+      
+      +++
+      
+      Explore →
 
    .. grid-item-card:: Python Web Frameworks
       :link: python_web-frameworks

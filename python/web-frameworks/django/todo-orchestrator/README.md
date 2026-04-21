@@ -131,4 +131,4 @@ python manage.py runserver 8001
 
 ---
 
-**Note**: This is a development tool. For user-facing todo management, see the [todo-display](../todo-display/) project.
+**Note**: This is a development tool. For user-facing todo management, see the todo-display project in the parent directory.

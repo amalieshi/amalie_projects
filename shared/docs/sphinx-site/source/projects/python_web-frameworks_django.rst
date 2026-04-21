@@ -4,7 +4,7 @@ Django Web Applications
 
 This directory contains multiple Django web applications for different purposes, each with its own `pyproject.toml` for dependency management.
 
-**Technologies:** FastAPI • Django • Python
+**Technologies:** Django • FastAPI • PyTest • Python
 
 
 .. include:: ../../../../../python/web-frameworks/django/README.md

@@ -22,31 +22,56 @@ Python development covering web frameworks, data science, automation, and modern
 - System administration tools
 - CI/CD automation
 
-## Featured Python Projects
+## Python Technology Stack
+
+My Python development journey focuses on building robust, scalable applications using modern frameworks, testing practices, and automation tools.
+
+### **Web Development**
+- Django full-stack applications with integrated templating
+- FastAPI high-performance REST APIs with automatic documentation
+- Bootstrap UI for responsive design
+- SQLite and PostgreSQL database integration
+
+#### Featured Web Framework Projects
+
+**[Django Todo Display](../projects/python_web-frameworks_django_django_todo_display.rst)** - User-focused todo application  
+A clean, intuitive Django web application designed for end users to create, view, and manage their todos. Features responsive design, todo cards with status indicators, and user-friendly interface optimized for daily productivity.
+
+**[Django Todo Orchestrator](../projects/python_web-frameworks_django_django_todo_orchestrator.rst)** - Development and testing platform  
+A comprehensive Django-based testing and orchestration platform for developers. Provides advanced debugging, testing, server management capabilities, one-click FastAPI server control, and complete API testing suite.
+
+**[FastAPI Todo API](../projects/python_web-frameworks_fastapi_fastapi_todo_api.rst)** - Robust REST API service  
+A production-ready FastAPI-based todo list API with comprehensive CRUD operations, automatic timestamp tracking, complete data validation, and interactive documentation. Features modern Python async patterns and type safety.
+
+### **Test Automation & UI Testing**
+- PyWinAuto for Windows application automation
+- PyTest framework for comprehensive testing
+- Performance testing with resource monitoring
+- UI automation with Windows UI Automation
+
+#### Featured Automation Projects
+
+**[WPF Inventory Management Testing Framework](automation-testing.md)** - Comprehensive automation testing suite  
+A sophisticated automation testing framework for WPF applications using PyWinAuto, pytest, and performance monitoring tools. Features complete UI automation, bulk testing capabilities, and CI/CD integration for Windows desktop applications.
+
+### **Architecture & Patterns**
+- RESTful API design principles
+- Model-View-Template (MVT) pattern with Django
+- Asynchronous programming with FastAPI
+- Test-driven development (TDD)
+- Performance monitoring and optimization
+
+### **Development & Deployment**
+- Docker containerization for consistent environments
+- Render cloud deployment with automatic scaling
+- Environment configuration management
+- CI/CD pipeline integration with automated testing
+- Git workflow optimization
 
 ```{toctree}
 :maxdepth: 1
 :titlesonly:
 
 web-frameworks
-django-todo-display
-django-todo-orchestrator
-fastapi-todo-service
+automation-testing
 ```
-
-### **Web Framework Showcase**
-
-A comprehensive demonstration of modern Python web development using Django and FastAPI, showcasing both individual services and orchestrated multi-service architectures.
-
-**Key Features:**
-- Django todo management interface with Bootstrap UI
-- Django orchestrator for API testing and server management  
-- FastAPI REST service with automatic documentation
-- Auto-start functionality and process management
-- Production-ready deployment configurations for Render
-
-**Technical Implementation:**
-- **Frontend**: Django with Bootstrap 5 responsive design
-- **API**: FastAPI with Pydantic data validation
-- **Database**: SQLite for development, production-ready for cloud deployment
-- **Architecture**: Microservices with Django orchestrator pattern

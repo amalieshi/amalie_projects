@@ -4,7 +4,7 @@ Todo Display
 
 **📂 Project Path**: `python/web-frameworks/django/todo-display/`
 
-**Technologies:** FastAPI • Django • Python
+**Technologies:** Django • FastAPI • Python • Testing
 
 
 .. include:: ../../../../../python/web-frameworks/django/todo-display/README.md

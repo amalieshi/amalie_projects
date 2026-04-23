@@ -13,7 +13,6 @@ from datetime import datetime
 
 from config import (
     APP_EXECUTABLE,
-    APP_WINDOW_TITLE,
     APP_WINDOW_TITLE_UIA,
     TEST_SETTINGS,
     PERFORMANCE_SETTINGS,
@@ -62,61 +61,16 @@ class AppManager:
             windows = self.app.windows()
 
             if windows:
-                # Look for the window with Sample Product content first
-                target_window = None
-                fallback_window = None
-
                 for window in windows:
                     try:
                         title = window.window_text()
                         if title == APP_WINDOW_TITLE_UIA:
-                            edit_controls = window.descendants(control_type="Edit")
-
-                            # Look for "Sample Product" to identify the correct window
-                            has_sample_product = False
-                            try:
-                                # Check descendant controls for "Sample Product" text
-                                all_controls = window.descendants()
-                                for ctrl in all_controls[
-                                    :50
-                                ]:  # Limit to first 50 to avoid timeout
-                                    try:
-                                        text_content = ctrl.window_text()
-                                        if text_content and (
-                                            "sample product" in text_content.lower()
-                                            or "sample" in text_content.lower()
-                                        ):
-                                            has_sample_product = True
-                                            break
-                                    except:
-                                        continue
-                            except:
-                                pass
-
-                            # Prioritize window with Sample Product
-                            if has_sample_product:
-                                target_window = window
-                                logger.info(
-                                    f"Found target window with Sample Product: {title} (Edit controls: {len(edit_controls)})"
-                                )
-                                break
-                            # Keep track of fallback window
-                            elif len(edit_controls) >= 4 and fallback_window is None:
-                                fallback_window = window
+                            self.main_window = window
+                            connection_successful = True
+                            logger.info(f"UIA connection successful to window: {title}")
+                            break
                     except:
                         continue
-
-                # Use target window or fallback
-                if target_window:
-                    self.main_window = target_window
-                    connection_successful = True
-                    logger.info(
-                        f"UIA connection successful to window with Sample Product"
-                    )
-                elif fallback_window:
-                    self.main_window = fallback_window
-                    connection_successful = True
-                    logger.info(f"UIA connection successful to fallback window")
         except Exception as e:
             logger.warning(f"UIA backend failed: {e}")
 
@@ -128,11 +82,10 @@ class AppManager:
                 windows = self.app.windows()
 
                 if windows:
-                    # Look for main window by title
                     for window in windows:
                         try:
                             title = window.window_text()
-                            if title == APP_WINDOW_TITLE or "Inventory" in title:
+                            if title == APP_WINDOW_TITLE_UIA or "Inventory" in title:
                                 self.main_window = window
                                 connection_successful = True
                                 logger.info(

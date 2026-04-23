@@ -26,35 +26,27 @@ TEST_ORACLES_DIR = Path(__file__).parent / "test_oracles"
 PRODUCT_DATA_FILE = TEST_ORACLES_DIR / "product_data.json"
 
 # Application window and control identifiers (AutomationProperties.AutomationId)
-APP_WINDOW_TITLE = "WPF Inventory Management System"
 APP_WINDOW_TITLE_UIA = "inventory_management_main_window"
 CONTROL_IDS = {
     # Main window elements
-    "main_window": "inventory_main_window",
-    "header_panel": "application_header_panel",
-    "main_content_grid": "main_content_layout_grid",
+    "main_window": "main_window",
+    "main_content_grid": "main_content_grid",
     # Product form controls
     "product_name_textbox": "product_name_textbox",
     "product_sku_textbox": "product_sku_textbox",
     "product_price_textbox": "product_price_textbox",
     "product_quantity_textbox": "product_quantity_textbox",
-    "product_category_combobox": "product_category_combobox",
     # Action buttons
     "add_product_button": "add_product_button",
     "edit_product_button": "edit_product_button",
     "delete_product_button": "delete_product_button",
     "save_product_button": "save_product_button",
-    "cancel_product_button": "cancel_product_button",
+    "cancel_edit_button": "cancel_edit_button",
     # Data grid
-    "products_datagrid": "products_display_grid",
-    # Search and filter
-    "search_textbox": "search_filter_textbox",
-    "search_button": "search_execute_button",
-    "clear_search_button": "clear_search_filters_button",
+    "products_datagrid": "products_datagrid",
     # Status and info
-    "status_bar": "application_status_bar",
-    "total_products_label": "total_products_count_label",
-    "total_value_label": "inventory_total_value_label",
+    "status_bar": "status_bar",
+    "total_products_label": "product_count_label",
 }
 
 # Test execution settings

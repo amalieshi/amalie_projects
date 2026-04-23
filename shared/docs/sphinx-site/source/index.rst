@@ -11,7 +11,7 @@ Welcome to this development portfolio! This site documents projects and technica
 **Technology Stacks**
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. grid:: 1
+.. grid:: 3
 
    .. grid-item-card:: C# Development
       :link: csharp/index
@@ -19,6 +19,21 @@ Welcome to this development portfolio! This site documents projects and technica
       :text-align: center
 
       Web APIs, desktop applications, and clean architecture.
+
+
+   .. grid-item-card:: Python Development
+      :link: python/index
+      :link-type: doc
+      :text-align: center
+
+      Web applications, data analysis, and test automation.
+   
+   .. grid-item-card:: Documentations
+      :link: docs/index
+      :link-type: doc
+      :text-align: center
+
+      Detailed guides, technical write-ups, and project lesson-learnt.
 
 **Coming Soon**
 ^^^^^^^^^^^^^^^^^^

@@ -58,6 +58,8 @@ This section showcases all python automation-testing projects with their documen
          :icon: book
 
          A comprehensive automation testing framework for the WPF Inventory Management Application using PyWinAuto, pytest, and performance monitoring tools.
+- **📂 Project Path**: `python\automation-testing`
+- **🔗 GitHub Repository**: [https://github.com/AmalieShi/amalie_projects](https://github.com/AmalieShi/amalie_projects)
 
 Overview
 --------
@@ -110,8 +112,6 @@ Prerequisites
    # or
    source venv/bin/activate  # Linux/Mac
    ```
-3. **Install Dependencies**:
-   ```bash
          
          :doc:`View Full Documentation → <python_automation-testing_wpf_inventory_app>`
 

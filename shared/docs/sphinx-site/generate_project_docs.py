@@ -1,3 +1,16 @@
+from pathlib import Path
+
+
+def get_readme_content_without_h1(readme_path: Path) -> str:
+    """Return README content without the first H1 header line."""
+    with open(readme_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    # Skip the first line if it's an H1 header
+    if lines and lines[0].startswith("# "):
+        return "".join(lines[1:]).lstrip()
+    return "".join(lines)
+
+
 #!/usr/bin/env python3
 """
 Automatic project discovery and documentation generator for Sphinx site.
@@ -35,7 +48,7 @@ def discover_project_directories(root_path: Path) -> list[str]:
             else:
                 # For other directories, only include if they have README files
                 for item in top_path.iterdir():
-                    if item.is_dir():
+                    if item.is_dir() and not item.name.startswith("."):
                         # Check if this subdirectory or its children have README files
                         has_readme = False
 
@@ -48,6 +61,7 @@ def discover_project_directories(root_path: Path) -> list[str]:
                             for nested_item in item.iterdir():
                                 if (
                                     nested_item.is_dir()
+                                    and not nested_item.name.startswith(".")
                                     and (nested_item / "README.md").exists()
                                 ):
                                     has_readme = True
@@ -72,9 +86,9 @@ def find_project_readmes(root_path: Path) -> list[dict]:
     for project_dir in project_dirs:
         full_path = root_path / project_dir
         if full_path.exists():
-            # Look for README files in subdirectories
+            # Look for README files in subdirectories, skip hidden dirs
             for item in full_path.iterdir():
-                if item.is_dir():
+                if item.is_dir() and not item.name.startswith("."):
                     readme_path = item / "README.md"
                     if readme_path.exists():
                         # Calculate relative path from sphinx source/projects directory (where RST files are generated)
@@ -115,7 +129,7 @@ def find_project_readmes(root_path: Path) -> list[dict]:
                         "maui",
                     ]:  # Add more as needed
                         for nested_item in item.iterdir():
-                            if nested_item.is_dir():
+                            if nested_item.is_dir() and not nested_item.name.startswith("."):
                                 nested_readme_path = nested_item / "README.md"
                                 if nested_readme_path.exists():
                                     # Calculate relative path for nested project
@@ -684,19 +698,22 @@ def update_python_index(readmes: list[dict], python_index_path: Path, python_dir
             project_filename = f"{category_base.replace('_', '-')}"
             project_file = python_dir / f"{project_filename}.md"
 
-            # Generate project markdown content
+            # Generate project markdown content (strip H1 from README)
             tech_badges = ""
             if project["technologies"]:
                 tech_list = " • ".join(project["technologies"])
                 tech_badges = f"\n**Technologies:** {tech_list}\n"
 
+            readme_content = get_readme_content_without_h1(project["full_path"])
+
+            # Add extra blank lines for better spacing
             project_md_content = f"""# {project['title']}
 
-{project['description']}{tech_badges}
+{project['description']}
 
-```{{include}} {project['path']}
-:parser: myst_parser.sphinx_
-```
+{tech_badges.strip() if tech_badges else ''}
+
+{readme_content.strip()}
 
 ---
 
@@ -712,19 +729,24 @@ def update_python_index(readmes: list[dict], python_index_path: Path, python_dir
     with open(python_index_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Build proper hierarchical toctree
+    # Build proper hierarchical toctree with deduplication
     toctree_entries = []
+    seen = set()
 
     # Add main technology categories (these contain hierarchies)
     if web_framework_projects:
-        toctree_entries.append("web-frameworks")
+        if "web-frameworks" not in seen:
+            toctree_entries.append("web-frameworks")
+            seen.add("web-frameworks")
 
     # Add standalone projects
     for project in standalone_projects:
         project_filename = (
             f"{project['category'].replace('python_', '').replace('_', '-')}"
         )
-        toctree_entries.append(project_filename)
+        if project_filename not in seen:
+            toctree_entries.append(project_filename)
+            seen.add(project_filename)
 
     # Update toctree in content - remove individual web framework entries
     import re

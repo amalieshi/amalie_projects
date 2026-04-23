@@ -76,7 +76,7 @@ Welcome! I'm a passionate developer and certified test automation engineer focus
 **Recent Conference Participation:**
 
 - **Medical Informatics Europe, Genova, Italy**: Presenting and collaborating on the latest medical informatics development
-- **SeleniumConf Valencia, Spain**: Contributing to open-source test automation community and sharing automation practices
+- **SeleniumConf, Valencia, Spain**: Contributing to open-source test automation community and sharing automation practices
 - **Medical Informatics Europe, Glasgow, UK**: Attending to learn about the latest medical informatics academic research
 - **RSLondon, Imperial College London, UK (2024)**: Academic collaboration with researchers from Imperial, Cambridge, Allan Turing Institute and other prestigious academic institutions in the UK
 
@@ -115,10 +115,9 @@ Welcome! I'm a passionate developer and certified test automation engineer focus
 
    .. tab:: Frontend
 
-      - **React**: Hooks, Context, Redux Toolkit
-      - **Vue.js**: Composition API, Pinia
+      - **React**: Hooks, Context, and modern frontend development
       - **CSS**: Flexbox, Grid, Responsive Design
-      - **Build Tools**: Vite, Webpack, npm/yarn
+      - **Build Tools**: Vite, npm
 
    .. tab:: Data & ML
 

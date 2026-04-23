@@ -2,6 +2,9 @@
 
 A comprehensive automation testing framework for the WPF Inventory Management Application using PyWinAuto, pytest, and performance monitoring tools.
 
+- **📂 Project Path**: `python\automation-testing`
+- **🔗 GitHub Repository**: [https://github.com/AmalieShi/amalie_projects](https://github.com/AmalieShi/amalie_projects)
+
 ## Overview
 
 This framework provides:

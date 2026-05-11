@@ -1,0 +1,3 @@
+[submodule "machine-learning/learning_health_system_for_medical_imaging/notebooks/monai-bootcamp"]
+	path = machine-learning/learning_health_system_for_medical_imaging/notebooks/monai-bootcamp
+	url = https://github.com/Project-MONAI/monai-bootcamp.git

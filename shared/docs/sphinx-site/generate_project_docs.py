@@ -1,212 +1,86 @@
-import os
-from pathlib import Path
-import re
+#!/usr/bin/env python3
+"""
+Automatic project discovery and documentation generator for Sphinx site.
+Recursively scans the repository for README files and generates MyST Markdown pages.
+"""
 
+import os
+import re
+from pathlib import Path
+
+
+# Directory names to skip during recursive discovery
+IGNORED_DIR_NAMES = {
+    ".git", "venv", ".venv", "node_modules", "__pycache__",
+    ".pytest_cache", "build", "dist", ".tox", ".mypy_cache",
+    "site-packages", "htmlcov", ".eggs", ".vscode", ".idea",
+    # Standard project structure dirs — documented via the project's own README
+    "src", "tests", "docs", "data",
+}
+
+# Top-level category directories to scan
+TOP_LEVEL_CATEGORIES = [
+    "python", "csharp", "frontend", "machine-learning",
+    "fullstack-projects", "experiments",
+]
+
+_DISPLAY_NAMES: dict[str, str] = {
+    "machine-learning": "Machine Learning",
+    "python_web-frameworks": "Python Web Frameworks",
+    "python_automation-testing": "Python Automation Testing",
+    "csharp": "C# Projects",
+    "csharp_console-apps": "C# Console Apps",
+    "csharp_desktop-apps": "C# Desktop Apps",
+    "csharp_desktop-apps_wpf": "C# WPF Desktop Apps",
+    "csharp_web-development": "C# Web Development",
+    "frontend_react": "React Projects",
+    "frontend_vue": "Vue.js Projects",
+    "fullstack-projects": "Full-Stack Projects",
+}
+
+
+# ---------------------------------------------------------------------------
+# Content helpers
+# ---------------------------------------------------------------------------
 
 def get_readme_content_without_h1(readme_path: Path) -> str:
-    """Return README content without the first H1 header line."""
+    """Return README content with the first H1 header stripped."""
     with open(readme_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
-    # Skip the first line if it's an H1 header
     if lines and lines[0].startswith("# "):
         return "".join(lines[1:]).lstrip()
     return "".join(lines)
 
 
-#!/usr/bin/env python3
-"""
-Automatic project discovery and documentation generator for Sphinx site.
-This script scans the repository for README files and generates RST files
-that include them in the Sphinx documentation.
-"""
-
-
-def discover_project_directories(root_path: Path) -> list[str]:
-    """Automatically discover project directories that contain README files."""
-    project_dirs = []
-
-    # Define top-level categories to scan
-    top_level_dirs = [
-        "python",
-        "csharp",
-        "frontend",
-        "machine-learning",
-        "fullstack-projects",
-        "experiments",
-    ]
-
-    for top_dir in top_level_dirs:
-        top_path = root_path / top_dir
-        if top_path.exists():
-            # For python directory, include ALL subdirectories (not just those with READMEs)
-            if top_dir == "python":
-                for item in top_path.iterdir():
-                    if item.is_dir() and not item.name.startswith("."):
-                        project_dirs.append(f"{top_dir}/{item.name}")
-            else:
-                # For other directories, only include if they have README files
-                for item in top_path.iterdir():
-                    if item.is_dir() and not item.name.startswith("."):
-                        # Check if this subdirectory or its children have README files
-                        has_readme = False
-
-                        # Check immediate subdirectory
-                        if (item / "README.md").exists():
-                            has_readme = True
-
-                        # Check nested subdirectories (one level deep)
-                        if not has_readme:
-                            for nested_item in item.iterdir():
-                                if (
-                                    nested_item.is_dir()
-                                    and not nested_item.name.startswith(".")
-                                    and (nested_item / "README.md").exists()
-                                ):
-                                    has_readme = True
-                                    break
-
-                        # Add to project_dirs if it has README files
-                        if has_readme:
-                            project_dirs.append(f"{top_dir}/{item.name}")
-
-    # Sort for consistent ordering
-    return sorted(project_dirs)
-
-
-def find_project_readmes(root_path: Path) -> list[dict]:
-    """Find all README files in project directories."""
-    readmes = []
-
-    # Automatically discover project directories
-    project_dirs = discover_project_directories(root_path)
-    print(f"Discovered project directories: {project_dirs}")
-
-    for project_dir in project_dirs:
-        full_path = root_path / project_dir
-        if full_path.exists():
-            # Look for README files in subdirectories, skip hidden dirs
-            for item in full_path.iterdir():
-                if item.is_dir() and not item.name.startswith("."):
-                    readme_path = item / "README.md"
-                    if readme_path.exists():
-                        # Calculate relative path from sphinx source/projects directory (where RST files are generated)
-                        rel_path = os.path.relpath(
-                            readme_path,
-                            root_path / "shared/docs/sphinx-site/source/projects",
-                        )
-                        # Ensure forward slashes for cross-platform compatibility
-                        rel_path = rel_path.replace("\\", "/")
-
-                        readmes.append(
-                            {
-                                "name": item.name,
-                                "category": project_dir.replace("/", "_"),
-                                "path": rel_path,
-                                "full_path": readme_path,
-                                "title": create_title_from_readme(readme_path),
-                                "description": extract_project_description(readme_path),
-                                "technologies": extract_project_technologies(
-                                    readme_path
-                                ),
-                                "slug": item.name.lower()
-                                .replace("-", "_")
-                                .replace(" ", "_"),
-                            }
-                        )
-
-                    # Special handling for multi-project directories (like django)
-                    # Look for nested projects within directories that have their own README
-                    if item.name.lower() in [
-                        "django",
-                        "fastapi",
-                        "react",
-                        "vue",
-                        "mlflow",
-                        "wpf",
-                        "winui",
-                        "maui",
-                    ]:  # Add more as needed
-                        for nested_item in item.iterdir():
-                            if nested_item.is_dir() and not nested_item.name.startswith(
-                                "."
-                            ):
-                                nested_readme_path = nested_item / "README.md"
-                                if nested_readme_path.exists():
-                                    # Calculate relative path for nested project
-                                    nested_rel_path = os.path.relpath(
-                                        nested_readme_path,
-                                        root_path
-                                        / "shared/docs/sphinx-site/source/projects",
-                                    )
-                                    nested_rel_path = nested_rel_path.replace("\\", "/")
-
-                                    readmes.append(
-                                        {
-                                            "name": f"{item.name}-{nested_item.name}",
-                                            "parent_category": item.name,
-                                            "category": f"{project_dir.replace('/', '_')}_{item.name.lower()}",
-                                            "path": nested_rel_path,
-                                            "full_path": nested_readme_path,
-                                            "title": create_title_from_readme(
-                                                nested_readme_path
-                                            ),
-                                            "description": extract_project_description(
-                                                nested_readme_path
-                                            ),
-                                            "technologies": extract_project_technologies(
-                                                nested_readme_path
-                                            ),
-                                            "slug": f"{item.name.lower()}_{nested_item.name.lower()}".replace(
-                                                "-", "_"
-                                            ).replace(
-                                                " ", "_"
-                                            ),
-                                        }
-                                    )
-
-    return readmes
-
-
 def create_title_from_readme(readme_path: Path) -> str:
-    """Extract the first heading from a README file."""
+    """Extract the first H1 heading from a README, falling back to directory name."""
     try:
         with open(readme_path, "r", encoding="utf-8") as f:
             first_line = f.readline().strip()
-            if first_line.startswith("#"):
-                return first_line.lstrip("# ")
-            return readme_path.parent.name.replace("-", " ").title()
+        if first_line.startswith("#"):
+            return first_line.lstrip("# ")
+        return readme_path.parent.name.replace("-", " ").title()
     except Exception:
         return readme_path.parent.name.replace("-", " ").title()
 
 
 def extract_project_description(readme_path: Path) -> str:
-    """Extract a brief description from README (first paragraph after title)."""
+    """Return the first non-heading, non-code paragraph from a README."""
     try:
         with open(readme_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
-        # Skip title lines and find first paragraph
-        for i, line in enumerate(lines):
+        for line in lines:
             line = line.strip()
             if line and not line.startswith("#") and not line.startswith("```"):
-                # Return complete sentence(s) - find end of sentence or reasonable break
-                description = line
-
-                # If line is very long (>300 chars), try to break at sentence end
-                if len(description) > 300:
-                    # Look for sentence endings within first 250 chars
-                    sentence_ends = [".", "!", "?"]
-                    for end_char in sentence_ends:
-                        end_pos = description.find(end_char, 100, 250)
-                        if end_pos != -1:
-                            description = description[: end_pos + 1]
-                            break
-                    else:
-                        # If no sentence end found, truncate at word boundary
-                        words = description[:250].split()
-                        description = " ".join(words[:-1]) + "..."
-
-                return description
+                if len(line) > 300:
+                    for end_char in (".", "!", "?"):
+                        pos = line.find(end_char, 100, 250)
+                        if pos != -1:
+                            return line[: pos + 1]
+                    words = line[:250].split()
+                    return " ".join(words[:-1]) + "..."
+                return line
 
         return "A project showcasing development skills and best practices."
     except Exception:
@@ -214,47 +88,39 @@ def extract_project_description(readme_path: Path) -> str:
 
 
 def extract_project_technologies(readme_path: Path) -> list[str]:
-    """Extract technologies/tech stack from README with deduplication and priority handling."""
+    """Extract and deduplicate technologies mentioned in a README."""
     try:
         with open(readme_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
-        # Technology patterns with priority (higher priority overrides lower)
         tech_patterns = {
-            # Web Frameworks (high priority)
             "fastapi": ("FastAPI", 10),
             "django": ("Django", 10),
             "flask": ("Flask", 10),
-            # Frontend Frameworks
             "react": ("React", 10),
             "vue": ("Vue.js", 10),
             "angular": ("Angular", 10),
-            # Languages
             "typescript": ("TypeScript", 8),
             "javascript": ("JavaScript", 8),
             "python": ("Python", 8),
             "c#": ("C#", 8),
-            # .NET Technologies
             "aspnet": ("ASP.NET", 9),
             "blazor": ("Blazor", 9),
             "wpf": ("WPF", 9),
             "maui": ("MAUI", 9),
             ".net": (".NET", 8),
-            # ML/Data Science
             "pytorch": ("PyTorch", 9),
             "tensorflow": ("TensorFlow", 9),
             "scikit-learn": ("Scikit-learn", 9),
+            "monai": ("MONAI", 9),
             "pandas": ("Pandas", 8),
             "numpy": ("NumPy", 8),
-            # Infrastructure
             "docker": ("Docker", 7),
             "kubernetes": ("Kubernetes", 7),
-            # Databases
             "postgresql": ("PostgreSQL", 7),
             "mongodb": ("MongoDB", 7),
             "redis": ("Redis", 7),
             "sqlite": ("SQLite", 7),
-            # Testing (specific wins over general)
             "pywinauto": ("PyWinAuto", 10),
             "ui automation": ("UI Automation", 9),
             "performance testing": ("Performance Testing", 9),
@@ -262,596 +128,595 @@ def extract_project_technologies(readme_path: Path) -> list[str]:
             "selenium": ("Selenium", 8),
             "test automation": ("Test Automation", 7),
             "automation": ("Automation", 6),
-            "testing": ("Testing", 5),  # Most general, lowest priority
+            "testing": ("Testing", 5),
         }
 
-        found_techs = {}  # Use dict to handle priorities
-
-        # Find all matching technologies
-        for pattern, (display_name, priority) in tech_patterns.items():
+        found: dict[str, int] = {}
+        for pattern, (display, priority) in tech_patterns.items():
             if pattern in content:
-                # Keep highest priority version
-                if (
-                    display_name not in found_techs
-                    or found_techs[display_name] < priority
-                ):
-                    found_techs[display_name] = priority
+                if display not in found or found[display] < priority:
+                    found[display] = priority
 
-        # Handle overlapping categories - remove less specific when more specific exists
-        final_techs = set(found_techs.keys())
+        final = set(found.keys())
+        if any(t in final for t in ("PyTest", "Performance Testing", "UI Automation", "Test Automation")):
+            final.discard("Testing")
+        if any(t in final for t in ("Test Automation", "UI Automation")):
+            final.discard("Automation")
 
-        # Remove general "Testing" if specific testing types exist
-        if any(
-            tech in final_techs
-            for tech in [
-                "PyTest",
-                "Performance Testing",
-                "UI Automation",
-                "Test Automation",
-            ]
-        ):
-            final_techs.discard("Testing")
-
-        # Remove general "Automation" if specific automation types exist
-        if any(tech in final_techs for tech in ["Test Automation", "UI Automation"]):
-            final_techs.discard("Automation")
-
-        return sorted(list(final_techs))  # Return deduplicated, sorted list
+        return sorted(final)
     except Exception:
         return []
 
 
-def generate_project_rst(readmes: list[dict], output_dir: Path):
-    """Generate individual project pages and category overview pages."""
+# ---------------------------------------------------------------------------
+# Discovery
+# ---------------------------------------------------------------------------
 
-    # Group readmes by category
-    categories = {}
-    all_readmes_by_category = {}  # Include nested projects for category pages
+def find_all_project_readmes(root_path: Path) -> list[dict]:
+    """
+    Recursively discover all project README files under the top-level category dirs.
 
-    for readme in readmes:
-        cat = readme["category"]
-        if cat not in categories:
-            categories[cat] = []
-        categories[cat].append(readme)
+    Each README at path  <category>/<...intermediates...>/<project>/README.md
+    is represented as a dict with:
+      - name         : project directory name
+      - category     : underscore-joined path up to (not including) the project dir,
+                       prefixed by the top-level category name
+                       e.g. 'machine-learning' or 'python_web-frameworks'
+      - cat_parts    : list of path segments that make up the category
+                       e.g. ['machine-learning'] or ['python', 'web-frameworks']
+      - depth        : number of directory levels from category root to project
+      - slug         : snake_case project name for page filename generation
+      - path         : relative path from source/projects/ to the README (for include)
+      - full_path    : absolute Path to the README
+      - title        : first H1 heading (or directory name)
+      - description  : first description paragraph
+      - technologies : list of detected technologies
+    """
+    sphinx_projects_dir = root_path / "shared/docs/sphinx-site/source/projects"
+    readmes: list[dict] = []
 
-        # Also group by main category for nested hierarchies
-        main_cat = cat.split("_")[0] + "_" + cat.split("_")[1] if "_" in cat else cat
-        if main_cat not in all_readmes_by_category:
-            all_readmes_by_category[main_cat] = []
-        all_readmes_by_category[main_cat].append(readme)
-
-    # Create individual project pages
-    for readme in readmes:
-        project_slug = f"{readme['category']}_{readme['slug']}"
-        project_file = output_dir / f"{project_slug}.rst"
-
-        # Generate individual project page
-        tech_badges = ""
-        if readme["technologies"]:
-            tech_list = " • ".join(readme["technologies"])
-            tech_badges = f"\n**Technologies:** {tech_list}\n"
-
-        project_content = f"""
-{readme['title']}
-{'=' * len(readme['title'])}
-
-{readme['description']}
-{tech_badges}
-
-.. include:: {readme['path']}
-   :parser: myst_parser.sphinx_
-
-----
-
-:doc:`← Back to {readme['category'].replace('_', ' ').title()} Projects <{readme['category']}>`
-
-"""
-
-        with open(project_file, "w", encoding="utf-8") as f:
-            f.write(project_content)
-
-        print(f"Generated project page: {project_file.name}")
-
-    # Generate category overview pages with project cards
-    for category, projects in categories.items():
-        # Skip nested categories - they'll be included in main category pages
-        if any("parent_category" in p for p in projects):
+    for category_name in TOP_LEVEL_CATEGORIES:
+        cat_path = root_path / category_name
+        if not cat_path.exists():
             continue
 
-        cat_name = category.replace("_", " ").title()
-        cat_file = output_dir / f"{category}.rst"
+        for readme_path in sorted(cat_path.rglob("README.md")):
+            # Parts relative to the category root, e.g. ('pyhealth', 'README.md')
+            relative = readme_path.relative_to(cat_path)
+            parts = relative.parts
 
-        # Header
-        rst_content = f"""
-{cat_name} Projects  
-{'=' * (len(cat_name) + 9)}
+            # Skip if any directory component is an infrastructure dir
+            if any(part in IGNORED_DIR_NAMES for part in parts[:-1]):
+                continue
 
-This section showcases all {cat_name.lower()} projects with their documentation and source code.
+            # Skip the top-level category README itself (e.g. machine-learning/README.md)
+            if len(parts) == 1:
+                continue
 
-.. admonition:: Navigation Tip
-   :class: tip
+            # project_parts = directory path from category root to the project (no README.md)
+            project_parts = parts[:-1]
+            project_name = project_parts[-1]
 
-   Click on any project card to view its complete documentation, or use the dropdown to preview key information.
+            if len(project_parts) == 1:
+                # Direct child: machine-learning/pyhealth
+                category = category_name
+                cat_parts = [category_name]
+            else:
+                # Nested: python/web-frameworks/fastapi
+                intermediate = "_".join(project_parts[:-1])
+                category = f"{category_name}_{intermediate}"
+                cat_parts = [category_name] + list(project_parts[:-1])
 
-"""
+            slug = project_name.lower().replace("-", "_").replace(" ", "_")
+            rel_path = os.path.relpath(readme_path, sphinx_projects_dir).replace("\\", "/")
 
-        # Check if this category has nested projects
-        nested_projects = []
-        main_category_key = category
-        for readme in readmes:
-            if "parent_category" in readme and readme["category"].startswith(
-                category + "_"
-            ):
-                nested_projects.append(readme)
+            readmes.append({
+                "name": project_name,
+                "category": category,
+                "cat_parts": cat_parts,
+                "depth": len(project_parts),
+                "path": rel_path,
+                "full_path": readme_path,
+                "title": create_title_from_readme(readme_path),
+                "description": extract_project_description(readme_path),
+                "technologies": extract_project_technologies(readme_path),
+                "slug": slug,
+            })
 
-        # Add toctree for nested projects if they exist
-        if nested_projects:
-            rst_content += f"""
+    print(f"Discovered {len(readmes)} README files across top-level category dirs")
+    return readmes
 
-**Projects in this Category**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. toctree::
-   :maxdepth: 1
-   :caption: {cat_name} Projects
-   :hidden:
+def _build_cat_parts_map(readmes: list[dict]) -> dict[str, list[str]]:
+    """Map each unique category name to its cat_parts list."""
+    result: dict[str, list[str]] = {}
+    for readme in readmes:
+        result.setdefault(readme["category"], readme["cat_parts"])
+    return result
 
-"""
-            for project in nested_projects:
-                nested_slug = f"{project['category']}_{project['slug']}"
-                rst_content += f"   {nested_slug}\n"
 
-        # Generate project cards (include both main projects and nested ones)
-        all_projects = projects + nested_projects
+def _direct_sub_categories(category: str, cat_parts_map: dict[str, list[str]]) -> list[str]:
+    """Return category names that are exactly one level deeper than the given category."""
+    parent_parts = cat_parts_map.get(category, [])
+    parent_depth = len(parent_parts)
+    direct_subs = {
+        cat for cat, parts in cat_parts_map.items()
+        if len(parts) == parent_depth + 1 and parts[:parent_depth] == parent_parts
+    }
+    return sorted(direct_subs)
 
-        rst_content += f"""
 
-.. grid:: 1 2 2 2
-   :gutter: 3
-   :margin: 2
+# ---------------------------------------------------------------------------
+# MyST Markdown block builders
+# ---------------------------------------------------------------------------
 
-"""
+def _toctree_block(entries: list[str], maxdepth: int = 1, hidden: bool = True) -> str:
+    """Generate a MyST toctree directive block."""
+    opts = ":maxdepth: " + str(maxdepth) + "\n"
+    if hidden:
+        opts += ":hidden:\n"
+    return "```{toctree}\n" + opts + "\n" + "\n".join(entries) + "\n```"
 
-        for project in all_projects:
-            project_slug = f"{project['category']}_{project['slug']}"
-            tech_tags = ""
-            if project["technologies"]:
-                tech_tags = "\n   ".join(
-                    [f":bdg-secondary:`{tech}`" for tech in project["technologies"]]
-                )
-                if tech_tags:
-                    tech_tags = f"\n   \n   {tech_tags}"
 
-            rst_content += f"""   .. grid-item-card:: {project['title']}
-      :link: {project_slug}
-      :link-type: doc
-      :class-card: project-card
-      :text-align: left
+def _include_block(path: str) -> str:
+    """Generate a MyST include directive block."""
+    return "```{include} " + path + "\n```"
 
-      {project['description']}{tech_tags}
-      
-      +++
-      
-      .. button-link:: {project_slug}
-         :color: primary
-         :outline:
-         :expand:
-         
-         View Details →
 
-"""
+def _admonition_block(title: str, body: str, cls: str = "tip") -> str:
+    """Generate a MyST admonition directive block."""
+    return "```{admonition} " + title + "\n:class: " + cls + "\n\n" + body + "\n```"
 
-        # Add collapsible quick preview section
-        rst_content += f"""
 
-**Quick Preview**
-^^^^^^^^^^^^^^^^^^
+def _project_grid(projects: list[dict]) -> str:
+    """
+    MyST colon-fence grid of project cards with button-ref links.
+    Nesting: :::::{grid} > ::::{grid-item-card} > :::{button-ref}
+    """
+    lines = [":::::{grid} 1 2 2 2", ":gutter: 3", ":margin: 2", ""]
+    for p in sorted(projects, key=lambda x: x["title"]):
+        slug = p["category"] + "_" + p["slug"]
+        tech_line = ""
+        if p["technologies"]:
+            tech_line = "\n\n" + " ".join(
+                "{bdg-secondary}`" + t + "`" for t in p["technologies"]
+            )
+        lines.append("::::{grid-item-card} " + p["title"])
+        lines.append(":link: " + slug)
+        lines.append(":link-type: doc")
+        lines.append(":class-card: project-card")
+        lines.append(":text-align: left")
+        lines.append("")
+        lines.append(p["description"] + tech_line)
+        lines.append("")
+        lines.append("+++")
+        lines.append("")
+        lines.append(":::{button-ref} " + slug)
+        lines.append(":color: primary")
+        lines.append(":outline:")
+        lines.append(":expand:")
+        lines.append(":ref-type: doc")
+        lines.append("")
+        lines.append("View Details")
+        lines.append(":::")
+        lines.append("::::")
+        lines.append("")
+    lines.append(":::::")
+    return "\n".join(lines)
 
-.. tab-set::
 
-"""
+def _subcategory_grid(categories: list[str]) -> str:
+    """
+    MyST colon-fence grid of sub-category cards.
+    Nesting: ::::{grid} > :::{grid-item-card}
+    """
+    lines = ["::::{grid} 1 2 2 2", ":gutter: 3", ":margin: 2", ""]
+    for cat in sorted(categories):
+        name = _DISPLAY_NAMES.get(cat, cat.replace("_", " ").replace("-", " ").title())
+        lines.append(":::{grid-item-card} " + name)
+        lines.append(":link: " + cat)
+        lines.append(":link-type: doc")
+        lines.append(":class-card: category-card")
+        lines.append(":text-align: center")
+        lines.append("")
+        lines.append("Explore sub-projects")
+        lines.append("")
+        lines.append("+++")
+        lines.append("Explore")
+        lines.append(":::")
+        lines.append("")
+    lines.append("::::")
+    return "\n".join(lines)
 
-        for project in projects:
-            # Get first few lines of README for preview
-            preview_content = get_readme_preview(project["full_path"])
 
-            rst_content += f"""
-   .. tab-item:: {project['title']}
+# ---------------------------------------------------------------------------
+# Page generation
+# ---------------------------------------------------------------------------
 
-      {project['description']}
-      
-      **Technologies:** {', '.join(project['technologies']) if project['technologies'] else 'Various'}
-      
-      .. dropdown:: Quick Preview
-         :color: info
-         :icon: book
+def _clean_generated_pages(output_dir: Path, keep: set[str] | None = None) -> None:
+    """Remove all auto-generated RST and MD files, preserving those in the keep set."""
+    preserved = keep or {"index.rst"}
+    removed = 0
+    for ext in ("*.rst", "*.md"):
+        for file in output_dir.glob(ext):
+            if file.name not in preserved:
+                file.unlink()
+                removed += 1
+    if removed:
+        print(f"Removed {removed} stale generated file(s)")
 
-         {preview_content}
-         
-         :doc:`View Full Documentation → <{category}_{project['slug']}>`
 
-"""
+def generate_project_pages(readmes: list[dict], output_dir: Path) -> None:
+    """Generate individual project pages and category overview pages as MyST Markdown files."""
 
-        # Write category file
+    _clean_generated_pages(output_dir)
+
+    categories: dict[str, list[dict]] = {}
+    for readme in readmes:
+        categories.setdefault(readme["category"], []).append(readme)
+
+    cat_parts_map = _build_cat_parts_map(readmes)
+    category_set = set(categories.keys())
+
+    # Individual project pages
+    # Skip any whose slug collides with a category name — those get a merged page below.
+    for readme in readmes:
+        project_slug = readme["category"] + "_" + readme["slug"]
+        if project_slug in category_set:
+            continue
+
+        project_file = output_dir / (project_slug + ".md")
+
+        tech_line = ""
+        if readme["technologies"]:
+            tech_line = "\n**Technologies:** " + " • ".join(readme["technologies"]) + "\n"
+
+        back_label = (
+            _DISPLAY_NAMES.get(readme["category"])
+            or readme["category"].replace("_", " ").replace("-", " ").title()
+        )
+
+        # A project page may itself be the parent of sub-categories.
+        child_cats = sorted(cat for cat in categories if cat.startswith(project_slug + "_"))
+
+        parts = [
+            "# " + readme["title"],
+            "",
+            readme["description"],
+            tech_line,
+            "",
+            _include_block(readme["path"]),
+        ]
+
+        if child_cats:
+            parts += ["", _toctree_block(child_cats), "", "## Sub-Projects", "", _subcategory_grid(child_cats)]
+
+        parts += ["", "---", "", "[← Back to " + back_label + "](" + readme["category"] + ".md)", ""]
+
+        with open(project_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(parts))
+        print(f"Generated project page: {project_file.name}")
+
+    # Build a lookup for merged-page detection.
+    # A collision occurs when a category name equals an individual project slug.
+    slug_to_readme: dict[str, dict] = {
+        r["category"] + "_" + r["slug"]: r for r in readmes
+    }
+
+    # Category overview pages
+    for category, projects in sorted(categories.items()):
+        cat_name = (
+            _DISPLAY_NAMES.get(category)
+            or category.replace("_", " ").replace("-", " ").title()
+        )
+        cat_file = output_dir / (category + ".md")
+        sub_cats = _direct_sub_categories(category, cat_parts_map)
+
+        # Merged page when this category name is also an individual project slug.
+        parent_readme = slug_to_readme.get(category)
+
+        # Toctree: project pages + sub-category pages (deduplicated)
+        seen_entries: set[str] = set()
+        toctree_entries: list[str] = []
+        for slug_entry in [category + "_" + p["slug"] for p in sorted(projects, key=lambda p: p["name"])]:
+            if slug_entry not in seen_entries:
+                toctree_entries.append(slug_entry)
+                seen_entries.add(slug_entry)
+        for sub_cat in sub_cats:
+            if sub_cat not in seen_entries:
+                toctree_entries.append(sub_cat)
+                seen_entries.add(sub_cat)
+
+        if parent_readme:
+            # Merged page: README content + sub-project navigation
+            tech_line = ""
+            if parent_readme["technologies"]:
+                tech_line = "\n**Technologies:** " + " • ".join(parent_readme["technologies"]) + "\n"
+
+            parts = [
+                "# " + parent_readme["title"],
+                "",
+                parent_readme["description"],
+                tech_line,
+                "",
+                _include_block(parent_readme["path"]),
+                "",
+            ]
+            if projects or sub_cats:
+                parts += ["---", ""]
+        else:
+            parts = [
+                "# " + cat_name + " Projects",
+                "",
+                "This section showcases all " + cat_name.lower() + " projects with their documentation and source code.",
+                "",
+                _admonition_block(
+                    "Navigation Tip",
+                    "Click on any project card to view its complete documentation.",
+                ),
+                "",
+            ]
+
+        if toctree_entries:
+            parts += [_toctree_block(toctree_entries), ""]
+
+        if projects:
+            section = "## Sub-Projects" if parent_readme else "## Projects"
+            parts += [section, "", _project_grid(projects), ""]
+
+        if sub_cats:
+            parts += ["## Sub-Categories", "", _subcategory_grid(sub_cats), ""]
+
         with open(cat_file, "w", encoding="utf-8") as f:
-            f.write(rst_content)
-
+            f.write("\n".join(parts))
         print(f"Generated category page: {cat_file.name}")
 
 
-def get_readme_preview(readme_path: Path, max_lines: int = 25) -> str:
-    """Get a comprehensive preview of the README content, converting markdown to RST."""
-    try:
-        with open(readme_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+# ---------------------------------------------------------------------------
+# Index updaters
+# ---------------------------------------------------------------------------
 
-        preview_lines = []
-        code_block = False
-        line_count = 0
+def _get_navigation_categories(readmes: list[dict]) -> list[str]:
+    """
+    Compute the top-level navigation entries shown in projects/index.rst.
 
-        for line in lines:
-            line = line.rstrip()
+    If a top-level category dir has any projects at depth 1 (e.g. machine-learning/pyhealth),
+    that top-level dir is used as the single nav entry for the whole category.
+    Otherwise, the first two cat_parts are used (e.g. python_web-frameworks).
 
-            # Track code blocks and convert to RST syntax
-            if line.startswith("```"):
-                code_block = not code_block
-                if not code_block:  # Closing code block
-                    # Don't add anything - RST code blocks end with unindented content
-                    continue
-                else:  # Opening code block
-                    preview_lines.append("")
-                    preview_lines.append(".. code-block:: text")
-                    preview_lines.append("")
-                continue
+    If the preferred nav entry doesn't correspond to an actual generated category page
+    (e.g. no README exists at that intermediate level), fall back to the actual category.
+    """
+    actual_categories: set[str] = {r["category"] for r in readmes}
 
-            # Inside code block - indent content
-            if code_block:
-                preview_lines.append(f"   {line}")
-                continue
+    # Which top-level dirs have at least one direct (depth=1) project?
+    top_levels_with_direct_projects: set[str] = {
+        r["cat_parts"][0] for r in readmes if r["depth"] == 1
+    }
 
-            # Skip title lines only
-            if line.startswith("# ") and line_count == 0:
-                line_count += 1
-                continue
+    nav_cats: set[str] = set()
+    for readme in readmes:
+        parts = readme["cat_parts"]
+        top = parts[0]
 
-            # Convert markdown headers to RST format
-            if line.startswith("## "):
-                header_text = line[3:]  # Remove "## "
-                preview_lines.append("")
-                preview_lines.append(header_text)
-                preview_lines.append("-" * len(header_text))
-                preview_lines.append("")
-                line_count += 1
-                continue
-            elif line.startswith("### "):
-                header_text = line[4:]  # Remove "### "
-                preview_lines.append("")
-                preview_lines.append(header_text)
-                preview_lines.append("^" * len(header_text))
-                preview_lines.append("")
-                line_count += 1
-                continue
+        if top in top_levels_with_direct_projects:
+            candidate = top
+        else:
+            candidate = "_".join(parts[:2]) if len(parts) >= 2 else top
 
-            # Include all other content
-            if line.strip():
-                preview_lines.append(line)
-                line_count += 1
+        if candidate in actual_categories:
+            nav_cats.add(candidate)
+        else:
+            nav_cats.add(readme["category"])
 
-            # Stop at reasonable length but allow more content
-            if line_count >= max_lines:
-                break
-
-        return "\n".join(preview_lines)
-    except Exception:
-        return "*Preview not available - view full documentation for details.*"
+    return sorted(nav_cats)
 
 
-def update_projects_index(
-    categories: list[str], readmes: list[dict], projects_index_path: Path
-):
-    """Update the main projects/index.rst to include all generated pages."""
+def update_projects_index(readmes: list[dict], projects_index_path: Path) -> None:
+    """Update source/projects/index.rst with all auto-discovered navigation entries."""
 
-    # Read existing content
     with open(projects_index_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Group readmes by main category (not sub-categories)
-    main_categories = {}
+    nav_cats = _get_navigation_categories(readmes)
 
-    for readme in readmes:
-        category = readme["category"]
+    toctree_section = "\n\n**Auto-Discovered Projects**\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n"
+    toctree_section += ".. toctree::\n   :maxdepth: 2\n   :caption: Technologies & Projects\n   :hidden:\n\n"
+    toctree_section += "".join(f"   {cat}\n" for cat in nav_cats)
 
-        # Check if this is a nested project (has parent_category)
-        if "parent_category" in readme:
-            # This is a nested project - don't show it at top level
-            continue
-        else:
-            # This is either a main category or an individual project
-            main_category = (
-                category.split("_")[0] + "_" + category.split("_")[1]
-            )  # e.g., "python_web-frameworks"
-
-            # Only include main framework/technology categories, not standalone projects
-            if readme["name"].lower() in [
-                "django",
-                "fastapi",
-                "react",
-                "vue",
-                "web-frameworks",
-            ]:
-                if main_category not in main_categories:
-                    main_categories[main_category] = []
-                main_categories[main_category].append(readme)
-            # Skip standalone projects - they will be embedded in technology sections
-
-    # Generate hierarchical toctree
-    toctree_content = """
-
-**Auto-Discovered Projects**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Technologies & Projects
-   :hidden:
-   
-"""
-
-    # Add main category pages (these will contain nested projects)
-    for main_category in sorted(main_categories.keys()):
-        toctree_content += f"   {main_category}\n"
-
-    # Always include C# documentation (manually created) - C# projects will be nested under this
-    toctree_content += "   csharp\n"
-
-    # Note: Standalone individual projects are NOT added here as they are embedded in technology sections
-
-    # Add visual category grid (only main categories)
-    toctree_content += f"""
-
-.. grid:: 1 2 2 3
-   :gutter: 3
-   :margin: 3
-
-"""
-
-    category_display_names = {
-        "python_web-frameworks": "Python Web Frameworks",
-        "python_data-science": "Python Data Science",
-        "python_utilities": "Python Utilities",
-        "csharp": "C# Projects",
-        "csharp_console-apps": "C# Console Apps",
-        "csharp_desktop-apps": "C# Desktop Apps",
-        "csharp_web-development": "C# Web Development",
-        "frontend_react": "React Projects",
-        "frontend_vue": "Vue.js Projects",
-        "machine-learning_pytorch": "PyTorch Projects",
-        "machine-learning_tensorflow": "TensorFlow Projects",
-        "fullstack-projects": "Full-Stack Projects",
-    }
-
-    # Always include C# in the grid (manually created documentation)
-    # Only include main framework/technology categories, not standalone projects
-    grid_categories = list(main_categories.keys()) + ["csharp"]
-
-    for category in sorted(set(grid_categories)):
-        display_name = category_display_names.get(
-            category, category.replace("_", " ").title()
-        )
-
-        toctree_content += f"""   .. grid-item-card:: {display_name}
-      :link: {category}
+    toctree_section += "\n\n.. grid:: 1 2 2 3\n   :gutter: 3\n   :margin: 3\n\n"
+    for cat in nav_cats:
+        display = _DISPLAY_NAMES.get(cat, cat.replace("_", " ").replace("-", " ").title())
+        toctree_section += f"""   .. grid-item-card:: {display}
+      :link: {cat}
       :link-type: doc
       :text-align: center
       :class-card: category-card
 
       Explore projects and documentation
-      
+
       +++
-      
+
       Explore →
 
 """
 
-    # Append or update the auto-discovered section
     if "Auto-Discovered Projects" in content:
-        # Replace existing section
         pattern = r"\*\*Auto-Discovered Projects\*\*.*?(?=\*\*|\Z)"
-        content = re.sub(pattern, toctree_content.strip(), content, flags=re.DOTALL)
+        content = re.sub(pattern, toctree_section.strip(), content, flags=re.DOTALL)
     else:
-        # Append to end
-        content += toctree_content
+        content += toctree_section
 
-    # Write updated content
     with open(projects_index_path, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"Updated: {projects_index_path}")
+    print(f"Updated projects index: {len(nav_cats)} navigation entries")
 
 
-def update_python_index(readmes: list[dict], python_index_path: Path, python_dir: Path):
-    """Update the python/index.md file to maintain proper hierarchy matching project structure."""
+def update_machine_learning_index(readmes: list[dict], ml_index_path: Path) -> None:
+    """Update source/machine-learning/index.md with discovered ML projects."""
+    ml_projects = [r for r in readmes if r["category"] == "machine-learning"]
+    if not ml_projects:
+        return
 
-    # Find Python projects
-    python_projects = [
-        readme for readme in readmes if readme["category"].startswith("python_")
-    ]
+    with open(ml_index_path, "r", encoding="utf-8") as f:
+        content = f.read()
 
+    # Build toctree entries pointing into the projects/ directory
+    toctree_entries = "\n".join(
+        "../projects/machine-learning_" + p["slug"]
+        for p in sorted(ml_projects, key=lambda p: p["name"])
+    )
+    toctree_block = "```{toctree}\n:maxdepth: 2\n:hidden:\n\n" + toctree_entries + "\n```"
+
+    toctree_pattern = r"```\{toctree\}.*?```"
+    if re.search(toctree_pattern, content, re.DOTALL):
+        content = re.sub(toctree_pattern, toctree_block, content, flags=re.DOTALL)
+    else:
+        content += "\n\n" + toctree_block
+
+    # Replace the "Featured Projects" section with discovered content
+    projects_md = "\n\n## Featured Projects\n\n"
+    for project in sorted(ml_projects, key=lambda p: p["title"]):
+        slug = "machine-learning_" + project["slug"]
+        techs = ", ".join(project["technologies"]) if project["technologies"] else "Various"
+        projects_md += "### [" + project["title"] + "](../projects/" + slug + ")\n\n"
+        projects_md += project["description"] + "\n\n"
+        if project["technologies"]:
+            projects_md += "**Technologies:** " + techs + "\n\n"
+
+    featured_pattern = r"\n\n## Featured Projects\n.*"
+    if re.search(featured_pattern, content, re.DOTALL):
+        content = re.sub(featured_pattern, projects_md.rstrip(), content, flags=re.DOTALL)
+    else:
+        content += projects_md
+
+    with open(ml_index_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    print(f"Updated ML index with {len(ml_projects)} project(s)")
+
+
+def update_python_index(readmes: list[dict], python_index_path: Path, python_dir: Path) -> None:
+    """Update source/python/index.md with discovered Python projects."""
+    python_projects = [r for r in readmes if r["category"].startswith("python_")]
     if not python_projects:
         return
 
-    # Separate projects into hierarchy levels
-    standalone_projects = []  # Top-level projects like automation-testing
-    web_framework_projects = []  # Projects under web-frameworks
+    standalone_projects = []
+    has_web_frameworks = False
 
     for project in python_projects:
         category_base = project["category"].replace("python_", "")
-
         if "web-frameworks" in category_base:
-            # This is a web framework subproject
-            web_framework_projects.append(project)
+            has_web_frameworks = True
         else:
-            # This is a standalone top-level project
             standalone_projects.append(project)
+            project_filename = category_base.replace("_", "-")
+            project_file = python_dir / (project_filename + ".md")
 
-            # Create individual page only for standalone projects
-            project_filename = f"{category_base.replace('_', '-')}"
-            project_file = python_dir / f"{project_filename}.md"
-
-            # Generate project markdown content (strip H1 from README)
-            tech_badges = ""
+            tech_line = ""
             if project["technologies"]:
-                tech_list = " • ".join(project["technologies"])
-                tech_badges = f"\n**Technologies:** {tech_list}\n"
+                tech_line = "**Technologies:** " + " • ".join(project["technologies"])
 
             readme_content = get_readme_content_without_h1(project["full_path"])
-
-            # Add extra blank lines for better spacing
-            project_md_content = f"""# {project['title']}
-
-{project['description']}
-
-{tech_badges.strip() if tech_badges else ''}
-
-{readme_content.strip()}
-
----
-
-[← Back to Python Development](index.md)
-"""
-
+            md_content = (
+                "# " + project["title"] + "\n\n"
+                + project["description"] + "\n\n"
+                + tech_line + "\n\n"
+                + readme_content.strip() + "\n\n"
+                + "---\n\n[← Back to Python Development](index.md)\n"
+            )
             with open(project_file, "w", encoding="utf-8") as f:
-                f.write(project_md_content)
-
+                f.write(md_content)
             print(f"Generated python project file: {project_file.name}")
 
-    # Read existing python index content
     with open(python_index_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Build proper hierarchical toctree with deduplication
-    toctree_entries = []
-    seen = set()
+    toctree_entries: list[str] = []
+    seen: set[str] = set()
 
-    # Add main technology categories (these contain hierarchies)
-    if web_framework_projects:
-        if "web-frameworks" not in seen:
-            toctree_entries.append("web-frameworks")
-            seen.add("web-frameworks")
+    if has_web_frameworks and "web-frameworks" not in seen:
+        toctree_entries.append("web-frameworks")
+        seen.add("web-frameworks")
 
-    # Add standalone projects
     for project in standalone_projects:
-        project_filename = (
-            f"{project['category'].replace('python_', '').replace('_', '-')}"
-        )
-        if project_filename not in seen:
-            toctree_entries.append(project_filename)
-            seen.add(project_filename)
+        filename = project["category"].replace("python_", "").replace("_", "-")
+        if filename not in seen:
+            toctree_entries.append(filename)
+            seen.add(filename)
 
-    # Update toctree in content - remove individual web framework entries
-    import re
-
-    toctree_pattern = r"```{toctree}\n:maxdepth: 1\n:titlesonly:\n\n(.*?)```"
     toctree_content = "\n".join(toctree_entries)
-    replacement = (
-        f"```{{toctree}}\n:maxdepth: 1\n:titlesonly:\n\n{toctree_content}\n```"
-    )
+    replacement = "```{toctree}\n:maxdepth: 1\n:titlesonly:\n\n" + toctree_content + "\n```"
+    toctree_pattern = r"```{toctree}\n:maxdepth: 1\n:titlesonly:\n\n(.*?)```"
 
     if re.search(toctree_pattern, content, re.DOTALL):
         content = re.sub(toctree_pattern, replacement, content, flags=re.DOTALL)
     else:
-        # Add toctree if it doesn't exist
-        content += f"\n\n{replacement}"
+        content += "\n\n" + replacement
 
-    # Write updated content
     with open(python_index_path, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(
-        f"Updated Python index with proper hierarchy: {len(toctree_entries)} main entries"
-    )
-    print(
-        f"- Web framework projects: {len(web_framework_projects)} (nested under web-frameworks)"
-    )
-    print(f"- Standalone projects: {len(standalone_projects)}")
+    print(f"Updated Python index: {len(toctree_entries)} main entries")
 
 
-def update_csharp_index(readmes: list[dict], csharp_index_path: Path):
-    """Update the csharp/index.md file to include discovered C# projects."""
-
-    # Find C# projects
-    csharp_projects = [
-        readme for readme in readmes if readme["category"].startswith("csharp_")
-    ]
-
+def update_csharp_index(readmes: list[dict], csharp_index_path: Path) -> None:
+    """Update source/csharp/index.md with discovered C# projects."""
+    csharp_projects = [r for r in readmes if r["category"].startswith("csharp_")]
     if not csharp_projects:
         return
 
-    # Read existing content
     with open(csharp_index_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Generate toctree entries for C# projects
-    toctree_entries = ""
-    for project in csharp_projects:
-        project_slug = f"{project['category']}_{project['slug']}"
-        toctree_entries += f"../projects/{project_slug}\n"
-
-    # Update toctree in content
-    import re
-
-    toctree_pattern = r"```{toctree}\n:maxdepth: 2\n:hidden:\n\n(.*?)```"
-    replacement = (
-        f"```{{toctree}}\n:maxdepth: 2\n:hidden:\n\n{toctree_entries.strip()}\n```"
+    toctree_entries = "\n".join(
+        "../projects/" + p["category"] + "_" + p["slug"]
+        for p in csharp_projects
     )
+    replacement = "```{toctree}\n:maxdepth: 2\n:hidden:\n\n" + toctree_entries + "\n```"
+    toctree_pattern = r"```{toctree}\n:maxdepth: 2\n:hidden:\n\n(.*?)```"
 
     if re.search(toctree_pattern, content, re.DOTALL):
         content = re.sub(toctree_pattern, replacement, content, flags=re.DOTALL)
     else:
-        # Add toctree if it doesn't exist (shouldn't happen after our fix)
-        content += f"\n\n{replacement}"
+        content += "\n\n" + replacement
 
-    # Write updated content
     with open(csharp_index_path, "w", encoding="utf-8") as f:
         f.write(content)
 
     print(f"Updated C# index with {len(csharp_projects)} project(s)")
 
 
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
 def main():
-    """Main execution function."""
-    # Get paths
+    """Discover all project READMEs and generate Sphinx documentation pages."""
     script_dir = Path(__file__).parent
-    repo_root = script_dir.parent.parent.parent  # Go up to repo root
+    repo_root = script_dir.parent.parent.parent
     sphinx_source = script_dir / "source"
     projects_dir = sphinx_source / "projects"
 
     print(f"Scanning for README files in: {repo_root}")
 
-    # Find all project READMEs
-    readmes = find_project_readmes(repo_root)
+    readmes = find_all_project_readmes(repo_root)
     print(f"Found {len(readmes)} project README files")
 
-    if readmes:
-        # Generate RST files
-        generate_project_rst(readmes, projects_dir)
-
-        # Update main projects index
-        categories = list(set(readme["category"] for readme in readmes))
-        update_projects_index(categories, readmes, projects_dir / "index.rst")
-
-        # Update C# index with discovered C# projects
-        update_csharp_index(readmes, sphinx_source / "csharp" / "index.md")
-
-        # Update Python index with discovered Python projects
-        update_python_index(
-            readmes, sphinx_source / "python" / "index.md", sphinx_source / "python"
-        )
-
-        print("\nDocumentation generation complete!")
-        print("Run 'sphinx-build source build/html' to rebuild documentation.")
-    else:
+    if not readmes:
         print("No README files found in project directories.")
+        return
+
+    generate_project_pages(readmes, projects_dir)
+    update_projects_index(readmes, projects_dir / "index.rst")
+    update_csharp_index(readmes, sphinx_source / "csharp" / "index.md")
+    update_python_index(readmes, sphinx_source / "python" / "index.md", sphinx_source / "python")
+    update_machine_learning_index(readmes, sphinx_source / "machine-learning" / "index.md")
+
+    print("\nDocumentation generation complete!")
+    print("Run 'python docs.py build' to rebuild the full site.")
 
 
 if __name__ == "__main__":

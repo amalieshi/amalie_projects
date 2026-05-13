@@ -52,25 +52,51 @@ The repository is organized by technology stacks to facilitate learning and easy
    :maxdepth: 2
    :caption: Technologies & Projects
    :hidden:
-   
+
+   csharp_desktop-apps_wpf
+   machine-learning
+   python_automation-testing
    python_web-frameworks
-   csharp
 
 
 .. grid:: 1 2 2 3
    :gutter: 3
    :margin: 3
 
-   .. grid-item-card:: C# Projects
-      :link: csharp
+   .. grid-item-card:: C# WPF Desktop Apps
+      :link: csharp_desktop-apps_wpf
       :link-type: doc
       :text-align: center
       :class-card: category-card
 
       Explore projects and documentation
-      
+
       +++
-      
+
+      Explore →
+
+   .. grid-item-card:: Machine Learning
+      :link: machine-learning
+      :link-type: doc
+      :text-align: center
+      :class-card: category-card
+
+      Explore projects and documentation
+
+      +++
+
+      Explore →
+
+   .. grid-item-card:: Python Automation Testing
+      :link: python_automation-testing
+      :link-type: doc
+      :text-align: center
+      :class-card: category-card
+
+      Explore projects and documentation
+
+      +++
+
       Explore →
 
    .. grid-item-card:: Python Web Frameworks
@@ -80,7 +106,7 @@ The repository is organized by technology stacks to facilitate learning and easy
       :class-card: category-card
 
       Explore projects and documentation
-      
+
       +++
-      
+
       Explore →

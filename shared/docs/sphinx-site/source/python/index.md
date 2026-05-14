@@ -34,13 +34,13 @@ My Python development journey focuses on building robust, scalable applications 
 
 #### Featured Web Framework Projects
 
-**[Django Todo Display](../projects/python_web-frameworks_django_todo_display)** - User-focused todo application  
+**[Django Todo Display](../projects/python_web-frameworks_django_django_todo_display.rst)** - User-focused todo application  
 A clean, intuitive Django web application designed for end users to create, view, and manage their todos. Features responsive design, todo cards with status indicators, and user-friendly interface optimized for daily productivity.
 
-**[Django Todo Orchestrator](../projects/python_web-frameworks_django_todo_orchestrator)** - Development and testing platform  
+**[Django Todo Orchestrator](../projects/python_web-frameworks_django_django_todo_orchestrator.rst)** - Development and testing platform  
 A comprehensive Django-based testing and orchestration platform for developers. Provides advanced debugging, testing, server management capabilities, one-click FastAPI server control, and complete API testing suite.
 
-**[FastAPI Todo API](../projects/python_web-frameworks_fastapi_todo_api)** - Robust REST API service  
+**[FastAPI Todo API](../projects/python_web-frameworks_fastapi_fastapi_todo_api.rst)** - Robust REST API service  
 A production-ready FastAPI-based todo list API with comprehensive CRUD operations, automatic timestamp tracking, complete data validation, and interactive documentation. Features modern Python async patterns and type safety.
 
 ### **Test Automation & UI Testing**

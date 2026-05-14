@@ -107,7 +107,7 @@ def build_html(skip_projects=False):
         if not build_projects():
             print("Project documentation build had issues, continuing...")
     else:
-        print("Skipping project documentation generation...")
+        print("⏭️  Skipping project documentation generation...")
     
     # Step 2: Build main documentation
     print("\n" + "="*60)

@@ -11,7 +11,7 @@ My C# development journey focuses on building robust, scalable applications usin
 - JWT Authentication & Authorization
 
 ### **Desktop Applications**  
-- **[WPF Inventory Management System](../projects/csharp_desktop-apps_wpf_wpfinventoryapp)** - Enterprise MVVM application with Entity Framework
+- **[WPF Inventory Management System](../projects/csharp_desktop-apps_wpf_wpf_wpfinventoryapp.rst)** - Enterprise MVVM application with Entity Framework
 - WPF with MVVM pattern
 - WinUI 3 modern apps  
 - .NET MAUI cross-platform
@@ -190,5 +190,5 @@ MaterialDesignThemes
 :maxdepth: 2
 :hidden:
 
-../projects/csharp_desktop-apps_wpf_wpfinventoryapp
+../projects/csharp_desktop-apps_wpf_wpf_wpfinventoryapp
 ```

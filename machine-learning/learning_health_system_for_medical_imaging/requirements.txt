@@ -1,0 +1,16 @@
+# Core dependencies for the learning health system prototype
+pandas
+numpy
+scikit-learn
+pydicom
+pillow
+matplotlib
+seaborn
+jupyter
+# Imaging and NLP
+# git clone https://github.com/x-raydar/x-raydar-cv.git external/x-raydar-cv
+transformers
+torch
+# Add MIMIC-CXR download/processing tools as needed
+
+# For UK-relevant use case, add any specific libraries here

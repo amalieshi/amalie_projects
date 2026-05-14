@@ -24,15 +24,14 @@ Exploring modern machine learning techniques, data analysis, and AI applications
 
 ## Featured Projects
 
-*Machine learning projects coming soon! Currently focusing on establishing robust web development foundations.*
+### [Learning Health System Prototype for Medical Imaging](../projects/machine-learning_learning_health_system_for_medical_imaging)
 
-### **Planned Projects**
-- **Image Classification**: Deep learning with PyTorch
-- **Sentiment Analysis**: NLP with transformer models
-- **Time Series Forecasting**: Economic and weather prediction
-- **Recommendation Systems**: Collaborative filtering algorithms
+This project is a prototype pipeline for extracting structured diagnostic information from medical imaging (e.g., chest X-rays) using open-source tools and UK-relevant use cases.
 
-### **Research Areas**
-- **Explainable AI**: Model interpretability and transparency
-- **Edge Computing**: Deploying models on resource-constrained devices
-- **Automated ML**: Pipeline automation and hyperparameter optimization
+**Technologies:** Python
+
+### [PyHealth Learning and Experimentation](../projects/machine-learning_pyhealth)
+
+A project for learning the PyHealth library and building enterprise-grade health informatics automation tools. PyHealth provides clinical EHR predictive modeling — drug recommendation, readmission prediction, mortality prediction, length-of-stay prediction, and drug-drug interaction checking.
+
+**Technologies:** Automation, PyTest, Python
